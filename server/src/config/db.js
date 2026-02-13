@@ -1,7 +1,33 @@
 import mongoose from 'mongoose';
 
 const connectDB = async () => {
-    // TODO: Implement MongoDB connection using mongoose.connect()
+    try {
+        const conn = await mongoose.connect(process.env.MONGODB_URI, {
+            // Mongoose 6+ no longer needs useNewUrlParser and useUnifiedTopology
+        });
+
+        console.log(`MongoDB connected successfully: ${conn.connection.host}`);
+
+        // Connection event listeners
+        mongoose.connection.on('error', (err) => {
+            console.error('MongoDB connection error:', err);
+        });
+
+        mongoose.connection.on('disconnected', () => {
+            console.warn('MongoDB disconnected');
+        });
+
+        // Graceful shutdown
+        process.on('SIGINT', async () => {
+            await mongoose.connection.close();
+            console.log('MongoDB connection closed due to app termination');
+            process.exit(0);
+        });
+
+    } catch (error) {
+        console.error('Error connecting to MongoDB:', error.message);
+        process.exit(1);
+    }
 };
 
 export { connectDB };

@@ -13,6 +13,8 @@ import specialtyRoutes from './routes/specialtyRoutes.js';
 
 const app = express();
 
+
+
 // TODO: Configure global middleware (cors, json parser, morgan)
 // TODO: Mount API routes (/api/auth, /api/users, etc.)
 // TODO: Mount error handler
