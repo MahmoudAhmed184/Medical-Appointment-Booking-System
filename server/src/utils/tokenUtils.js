@@ -1,7 +1,13 @@
-// TODO: Implement generateToken(payload)
-const generateToken = (payload) => { };
+import jwt from 'jsonwebtoken';
 
-// TODO: Implement verifyToken(token)
-const verifyToken = (token) => { };
+const generateToken = (payload) => {
+    return jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    });
+};
+
+const verifyToken = (token) => {
+    return jwt.verify(token, process.env.JWT_SECRET);
+};
 
 export { generateToken, verifyToken };
