@@ -1,5 +1,6 @@
+import { use } from "react";
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function DashboardPage() {
   const doctors = [
     {
@@ -23,7 +24,10 @@ export default function DashboardPage() {
       timeSlots: ["09:15 AM", "10:30 AM", "01:00 PM", "03:00 PM"],
     },
   ];
-
+ const navigate =useNavigate();
+ const handleDoctorClick=(doctorId)=>{
+  navigate(`/patient/doctor/${doctorId}`);
+ }
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -113,6 +117,7 @@ export default function DashboardPage() {
           {filteredDoctors.map((doc) => (
             <div
               key={doc.id}
+              onClick={()=>handleDoctorClick(doc.id)}
               className="bg-white dark:bg-slate-800 rounded-xl shadow p-5 hover:shadow-lg transition cursor-pointer"
             >
               <div className="flex gap-4">

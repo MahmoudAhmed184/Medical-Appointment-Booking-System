@@ -30,9 +30,9 @@ export default function MyAppointmentsPage() {
           {/* LOGO */}
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg text-[#137fec] bg-[#137fec1a]">
-              <span className="material-icons-round">icon</span>
-            </div>
-            <span className="font-bold text-xl">MediBook</span>
+        <span className="material-icons-round">icon</span>
+      </div>
+      <span className="font-bold text-xl">MediBook</span>
           </div>
 
           {/* TABS */}

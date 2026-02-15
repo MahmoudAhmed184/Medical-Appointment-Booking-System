@@ -19,7 +19,7 @@ import { AdminDashboardPage, UsersPage, SpecialtiesPage, AdminAppointmentsPage }
 import { DoctorDashboardPage, AvailabilityPage, DoctorAppointmentsPage, DoctorProfilePage } from '../features/doctor';
 
 // Patient pages
-import { PatientDashboardPage, DoctorsPage, BookAppointmentPage, MyAppointmentsPage, PatientProfilePage } from '../features/patient';
+import { PatientDashboardPage, DoctorPage, MyAppointmentsPage, PatientProfilePage } from '../features/patient';
 
 const AppRouter = () => {
     return (
@@ -55,8 +55,7 @@ const AppRouter = () => {
             <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
                 <Route element={<PatientLayout />}>
                     <Route path="/patient" element={<PatientDashboardPage />} />
-                    <Route path="/patient/doctors" element={<DoctorsPage />} />
-                    <Route path="/patient/book/:doctorId" element={<BookAppointmentPage />} />
+                    <Route path="/patient/doctor/:doctorId" element={<DoctorPage />} />
                     <Route path="/patient/appointments" element={<MyAppointmentsPage />} />
                     <Route path="/patient/profile" element={<PatientProfilePage />} />
                 </Route>

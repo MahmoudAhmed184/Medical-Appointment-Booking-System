@@ -1,6 +1,5 @@
 export { default as PatientDashboardPage } from './pages/DashboardPage';
-export { default as DoctorsPage } from './pages/DoctorsPage';
-export { default as BookAppointmentPage } from './pages/BookAppointmentPage';
+export { default as DoctorPage } from './pages/DoctorPage';
 export { default as MyAppointmentsPage } from './pages/MyAppointmentsPage';
 export { default as PatientProfilePage } from './pages/ProfilePage';
 export { default as DoctorCard } from './components/DoctorCard';
