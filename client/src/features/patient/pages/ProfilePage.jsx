@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function PatientProfile() {
   const [profile, setProfile] = useState({
@@ -24,6 +25,7 @@ export default function PatientProfile() {
     setEditingField(null);
   };
 
+   const navigate =useNavigate();
   return (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-display flex flex-col">
         {/* NAVBAR */}
@@ -41,9 +43,12 @@ export default function PatientProfile() {
     {/* TABS - Center */}
     <div className="hidden md:flex gap-6 text-mx">
       
-      <span className="hover:text-[#137fec] cursor-pointer">Find Doctors</span>
-      <span className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
-      <span className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
+      <span onClick={()=>navigate("/patient")}
+       className="hover:text-[#137fec] cursor-pointer">Find Doctors</span>
+      <span onClick={()=>navigate("/patient/appointments")}
+       className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
+      <span onClick={()=>navigate("/patient/profile")}
+       className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
         Profile
       </span>
     </div>

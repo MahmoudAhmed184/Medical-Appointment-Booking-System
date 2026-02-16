@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 export default function DoctorPage() {
   const [doctor] = useState({
@@ -19,6 +20,7 @@ export default function DoctorPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
 
+   const navigate =useNavigate();
   return (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-display flex flex-col">
 
@@ -32,11 +34,14 @@ export default function DoctorPage() {
             <span className="font-bold text-xl">MediBook</span>
           </div>
           <div className="hidden md:flex gap-6 text-mx">
-            <span className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
+            <span 
+            onClick={()=>navigate("/patient")} className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
               Find Doctors
             </span>
-            <span className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
-            <span className="hover:text-[#137fec] cursor-pointer">Profile</span>
+            <span onClick={()=>navigate("/patient/appointments")}
+            className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
+            <span onClick={()=>navigate("/patient/profile")} 
+            className="hover:text-[#137fec] cursor-pointer">Profile</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="font-medium text-slate-800 dark:text-slate-100">Shaza Hamdy</span>
@@ -78,7 +83,7 @@ export default function DoctorPage() {
 
           </div>
 
-          {/* Time Slots Card تحت كارد الدكتور */}
+          {/* Time Slots Card*/}
           {showSlots && (
             <div className="mt-6 bg-white dark:bg-slate-700 rounded-xl shadow-md border border-slate-200 dark:border-slate-600 p-6 flex flex-col gap-4 w-full">
               <div className="flex justify-between items-center">

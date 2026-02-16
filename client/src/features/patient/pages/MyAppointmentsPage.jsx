@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function MyAppointmentsPage() {
   const appointments = [
@@ -20,6 +21,7 @@ export default function MyAppointmentsPage() {
     },
   ];
 
+   const navigate =useNavigate();
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f7f8] dark:bg-[#101922] text-slate-800 dark:text-slate-100">
 
@@ -37,9 +39,11 @@ export default function MyAppointmentsPage() {
 
           {/* TABS */}
           <div className="hidden md:flex gap-6 text-mx">
-            <span className="hover:text-[#137fec] cursor-pointer">Find Doctors</span>
-            <span className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">My Appointments</span>
-            <span className="hover:text-[#137fec] cursor-pointer">Profile</span>
+            <span onClick={()=>navigate("/patient")}
+             className="hover:text-[#137fec] cursor-pointer">Find Doctors</span>
+            <span onClick={()=>navigate("/patient/appointments")}
+             className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">My Appointments</span>
+            <span onClick={()=>navigate("/patient/profile")} className="hover:text-[#137fec] cursor-pointer">Profile</span>
           </div>
 
           {/* PROFILE */}

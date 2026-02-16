@@ -57,11 +57,14 @@ export default function DashboardPage() {
 
     {/* TABS - Center */}
     <div className="hidden md:flex gap-6 text-mx">
-      <span className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
+      <span onClick={()=>navigate("/patient")} 
+      className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
         Find Doctors
       </span>
-      <span className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
-      <span className="hover:text-[#137fec] cursor-pointer">Profile</span>
+      <span onClick={()=>navigate("/patient/appointments")}
+       className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
+      <span onClick={()=>navigate("/patient/profile")}
+      className="hover:text-[#137fec] cursor-pointer">Profile</span>
     </div>
 
     {/* PROFILE - Right */}
