@@ -1,7 +1,8 @@
-import { Email } from "@mui/icons-material";
+import { Book, Email } from "@mui/icons-material";
 import { use } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BookConfirmModal from "../components/BookConfirmModal";
 
 
 export default function DashboardPage() {
@@ -41,6 +42,8 @@ export default function DashboardPage() {
   const [selectedTime, setSelectedTime] = useState("");
   const [search, setSearch] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState("All");
+
+  const [showConfirmModal,setShowConfirmModal] = useState(false)
 
   const filteredDoctors = doctors.filter((doc) => {
     const matchesName = doc.name.toLowerCase().includes(search.toLowerCase());
@@ -205,6 +208,7 @@ export default function DashboardPage() {
                     ? "bg-[#137fec] text-white hover:bg-[#137fec]/90"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 }`}
+                onClick={() => setShowConfirmModal(true)}
               >
                 Confirm Appointment
               </button>
@@ -213,6 +217,10 @@ export default function DashboardPage() {
         )}
 
       </main>
+            {showConfirmModal && (<BookConfirmModal doctor={selectedDoctor} setSelectedDate={setSelectedDate} setSelectedTime={setSelectedTime} setShowConfirmModal={setShowConfirmModal} selectedDate={selectedDate} selectedTime={selectedTime} />)}
+
+      
+
     </div>
   );
 }

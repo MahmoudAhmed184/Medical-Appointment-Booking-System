@@ -3,6 +3,7 @@ import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import BookConfirmModal from "../components/BookConfirmModal";
 
 export default function DoctorPage() {
 
@@ -10,6 +11,7 @@ export default function DoctorPage() {
   const [showSlots, setShowSlots] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [showConfirmModal,setShowConfirmModal] = useState(false)
 
    const location = useLocation();
    const doctor = location.state?.doctor;
@@ -128,10 +130,8 @@ export default function DoctorPage() {
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 }`}
                 onClick={() => {
-                  alert(`Appointment booked with ${doctor.name} at ${selectedDate} ${selectedTime}`);
+                  setShowConfirmModal(true);
                   setShowSlots(false);
-                  setSelectedDate("");
-                  setSelectedTime("");
                 }}
               >
                 Confirm Appointment
@@ -141,6 +141,9 @@ export default function DoctorPage() {
 
         </div>
       </main>
+      {showConfirmModal && (<BookConfirmModal doctor={doctor} setSelectedDate={setSelectedDate} setSelectedTime={setSelectedTime} setShowConfirmModal={setShowConfirmModal} selectedDate={selectedDate} selectedTime={selectedTime} />)}
     </div>
+
+    
   );
 }
