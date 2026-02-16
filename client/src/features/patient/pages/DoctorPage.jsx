@@ -2,24 +2,17 @@ import { useState } from "react";
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function DoctorPage() {
-  const [doctor] = useState({
-    name: "Dr. Sarah Williams",
-    specialty: "Cardiologist",
-    availability: "Mon - Fri • 9:00 AM - 4:00 PM",
-    address: "123 Heart Lane, New York, NY",
-    email: "sarah.williams@hospital.com",
-    phone: "+1 (555) 987-6543",
-    bio: "Dr. Sarah Williams is a highly experienced cardiologist specializing in heart health, preventive care, and patient education. She has been practicing for over 12 years with numerous successful cases.",
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
-    timeSlots: ["9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"]
-  });
+
 
   const [showSlots, setShowSlots] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
 
+   const location = useLocation();
+   const doctor = location.state?.doctor;
    const navigate =useNavigate();
   return (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-display flex flex-col">
@@ -59,7 +52,7 @@ export default function DoctorPage() {
           <div className="w-full flex flex-col gap-4 text-center">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{doctor.name}</h1>
             <p className="text-blue-500 font-medium">{doctor.specialty}</p>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{doctor.availability}</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{doctor.availablity}</p>
             <p className="text-slate-700 dark:text-slate-200 mt-2">{doctor.bio}</p>
             <p className="text-slate-500 dark:text-slate-400 mt-2">{doctor.address}</p>
             <div className="flex flex-col sm:flex-row gap-4 mt-4 justify-center">

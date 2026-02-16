@@ -1,32 +1,40 @@
+import { Email } from "@mui/icons-material";
 import { use } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+
 export default function DashboardPage() {
   const doctors = [
     {
       id: 1,
       name: "Dr. Sarah Jenkins",
       specialty: "Cardiologist",
-      rating: 4.9,
-      experience: "15+ years experience in heart care.",
       image: "https://i.pravatar.cc/100",
-      nextAvailable: "24 Feb, 10:00 AM",
+      availablity: "24 Feb, 10:00 AM",
+      bio: "Dr. Jenkins is a board-certified cardiologist with over 15 years of experience. She specializes in treating heart conditions and improving cardiovascular health.",
+      address: "123 Heart St, Cardio City",
+      email:"sarah.jenkins@medibook.com",
+      phone:"+1 (555) 987-6543",
       timeSlots: ["09:00 AM", "10:00 AM", "11:30 AM", "02:00 PM", "03:30 PM"],
     },
     {
       id: 2,
       name: "Dr. Michael Chen",
       specialty: "Dermatologist",
-      rating: 4.7,
-      experience: "Acne & skin specialist.",
       image: "https://i.pravatar.cc/101",
-      nextAvailable: "25 Feb, 09:15 AM",
+      availablity: "25 Feb, 09:15 AM",
+      bio: "Dr. Chen is a highly skilled dermatologist with expertise in treating skin conditions such as acne, eczema, and psoriasis. He is dedicated to helping patients achieve healthy skin.",
+      address: "456 Skin Ave, Dermaville",
+      email:"michael.chen@medibook.com",
+      phone:"+1 (555) 123-4567",
       timeSlots: ["09:15 AM", "10:30 AM", "01:00 PM", "03:00 PM"],
     },
   ];
+
  const navigate =useNavigate();
- const handleDoctorClick=(doctorId)=>{
-  navigate(`/patient/doctor/${doctorId}`);
+ const handleDoctorClick=(doctor)=>{
+  navigate(`/patient/doctor/${doctor.id}`,{state:{doctor}});
  }
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
@@ -120,7 +128,9 @@ export default function DashboardPage() {
           {filteredDoctors.map((doc) => (
             <div
               key={doc.id}
-              onClick={()=>handleDoctorClick(doc.id)}
+              onClick={() => {
+                handleDoctorClick(doc);
+              }}
               className="bg-white dark:bg-slate-800 rounded-xl shadow p-5 hover:shadow-lg transition cursor-pointer"
             >
               <div className="flex gap-4">
@@ -128,11 +138,11 @@ export default function DashboardPage() {
                 <div className="flex-1">
                   <h3 className="font-bold text-lg">{doc.name}</h3>
                   <p className="text-[#137fec] text-sm">{doc.specialty}</p>
-                  {/* <div className="text-yellow-500 font-bold mt-1">★ {doc.rating}</div> */}
-                  <p className="text-sm mt-2 text-slate-500">{doc.experience}</p>
-                  <p className="text-sm mt-1 text-slate-400">Next available: {doc.nextAvailable}</p>
+                  <p className="text-sm mt-2 text-slate-500">Address: {doc.address}</p>
+                  <p className="text-sm mt-1 text-slate-400">Availablity: {doc.availablity}</p>
                   <button
-                    onClick={() => {
+                    onClick={(e)=> {
+                        e.stopPropagation();
                       setSelectedDoctor(doc);
                       setSelectedDate("");
                       setSelectedTime("");
