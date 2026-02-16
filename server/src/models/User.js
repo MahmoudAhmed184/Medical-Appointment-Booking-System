@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema(
 
 
 // Index for faster email lookups
-userSchema.index({ email: 1 });
+//userSchema.index({ email: 1 });
 
 // Pre-save hook for password hashing
 userSchema.pre('save', async function (next) {
