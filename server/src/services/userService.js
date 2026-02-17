@@ -76,11 +76,48 @@ const getUserById = async (id) => {
     return user;
 };
 
-// TODO: Implement approveUser service
-const approveUser = async (id) => { };
+/**
+ * Approve a user (set isApproved to true).
+ * FR-ADMIN-02
+ */
+const approveUser = async (id) => {
+    const user = await User.findById(id).select('-password');
 
-// TODO: Implement toggleBlockUser service
-const toggleBlockUser = async (id) => { };
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    if (user.isApproved) {
+        throw new ApiError(400, 'User is already approved');
+    }
+
+    user.isApproved = true;
+    await user.save();
+
+    return user;
+};
+
+/**
+ * Toggle block/unblock a user.
+ * FR-ADMIN-02
+ */
+const toggleBlockUser = async (id) => {
+    const user = await User.findById(id).select('-password');
+
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    // Prevent blocking admin users
+    if (user.role === ROLES.ADMIN) {
+        throw new ApiError(403, 'Cannot block an admin user');
+    }
+
+    user.isBlocked = !user.isBlocked;
+    await user.save();
+
+    return user;
+};
 
 // TODO: Implement deleteUser service
 const deleteUser = async (id) => { };

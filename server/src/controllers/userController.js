@@ -30,11 +30,35 @@ const getUserById = catchAsync(async (req, res) => {
     });
 });
 
-// TODO: Implement approveUser handler
-const approveUser = (req, res) => { };
+/**
+ * @desc    Approve a user (doctor)
+ * @route   PATCH /api/users/:id/approve
+ * @access  Admin
+ */
+const approveUser = catchAsync(async (req, res) => {
+    const user = await userService.approveUser(req.params.id);
 
-// TODO: Implement blockUser handler
-const blockUser = (req, res) => { };
+    res.status(200).json({
+        success: true,
+        data: user,
+        message: 'User approved successfully',
+    });
+});
+
+/**
+ * @desc    Block/unblock a user
+ * @route   PATCH /api/users/:id/block
+ * @access  Admin
+ */
+const blockUser = catchAsync(async (req, res) => {
+    const user = await userService.toggleBlockUser(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        data: user,
+        message: `User ${user.isBlocked ? 'blocked' : 'unblocked'} successfully`,
+    });
+});
 
 // TODO: Implement deleteUser handler
 const deleteUser = (req, res) => { };
