@@ -1,4 +1,6 @@
 import User from '../models/User.js';
+import Doctor from '../models/Doctor.js';
+import Patient from '../models/Patient.js';
 import ApiError from '../utils/ApiError.js';
 import { ROLES } from '../utils/constants.js';
 
@@ -119,7 +121,32 @@ const toggleBlockUser = async (id) => {
     return user;
 };
 
-// TODO: Implement deleteUser service
-const deleteUser = async (id) => { };
+/**
+ * Delete a user and their associated profile (Doctor or Patient).
+ * SRS §6.3
+ */
+const deleteUser = async (id) => {
+    const user = await User.findById(id);
+
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    // Prevent deleting admin users
+    if (user.role === ROLES.ADMIN) {
+        throw new ApiError(403, 'Cannot delete an admin user');
+    }
+
+    // Delete associated profile
+    if (user.role === ROLES.DOCTOR) {
+        await Doctor.deleteOne({ userId: user._id });
+    } else if (user.role === ROLES.PATIENT) {
+        await Patient.deleteOne({ userId: user._id });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    return { message: 'User deleted successfully' };
+};
 
 export { getAllUsers, getUserById, approveUser, toggleBlockUser, deleteUser };

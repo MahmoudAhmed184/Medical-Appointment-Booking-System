@@ -60,7 +60,19 @@ const blockUser = catchAsync(async (req, res) => {
     });
 });
 
-// TODO: Implement deleteUser handler
-const deleteUser = (req, res) => { };
+/**
+ * @desc    Delete a user
+ * @route   DELETE /api/users/:id
+ * @access  Admin
+ */
+const deleteUser = catchAsync(async (req, res) => {
+    await userService.deleteUser(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        data: null,
+        message: 'User deleted successfully',
+    });
+});
 
 export { getAllUsers, getUserById, approveUser, blockUser, deleteUser };
