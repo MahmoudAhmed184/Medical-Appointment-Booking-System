@@ -1,8 +1,34 @@
-// TODO: Implement getAllUsers handler
-const getAllUsers = (req, res) => { };
+import catchAsync from '../utils/catchAsync.js';
+import * as userService from '../services/userService.js';
 
-// TODO: Implement getUserById handler
-const getUserById = (req, res) => { };
+/**
+ * @desc    Get all users (paginated, filtered)
+ * @route   GET /api/users
+ * @access  Admin
+ */
+const getAllUsers = catchAsync(async (req, res) => {
+    const { users, pagination } = await userService.getAllUsers(req.query);
+
+    res.status(200).json({
+        success: true,
+        data: users,
+        pagination,
+    });
+});
+
+/**
+ * @desc    Get user by ID
+ * @route   GET /api/users/:id
+ * @access  Admin
+ */
+const getUserById = catchAsync(async (req, res) => {
+    const user = await userService.getUserById(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        data: user,
+    });
+});
 
 // TODO: Implement approveUser handler
 const approveUser = (req, res) => { };
