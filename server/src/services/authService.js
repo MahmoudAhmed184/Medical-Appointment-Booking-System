@@ -62,7 +62,35 @@ const register = async (userData) => {
     };
 };
 
-// TODO: Implement login service
-const login = async (credentials) => { };
+const login = async (credentials) => {
+    const { email, password } = credentials;
+
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+        throw new ApiError(401, 'Invalid email or password');
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+        throw new ApiError(401, 'Invalid email or password');
+    }
+
+    if (user.isBlocked) {
+        throw new ApiError(403, 'Your account has been blocked. Please contact support.');
+    }
+
+    const token = generateToken({ id: user._id, role: user.role });
+
+    return {
+        token,
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            isApproved: user.isApproved,
+        },
+    };
+};
 
 export { register, login };
