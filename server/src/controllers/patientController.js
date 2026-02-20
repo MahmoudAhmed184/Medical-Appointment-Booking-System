@@ -108,11 +108,30 @@ const bookAppointment = async (req, res) => {
     if (!isValidObjectId(doctorId))
       return res.status(400).json({ message: "Invalid doctor ID" });
 
-    const timeRegex = /^([0-1]?\d|2[0-3]):[0-5]\d$/;
+    const timeRegex = /^([0-1]\d|2[0-3]):[0-5]\d$/;
     if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
       return res.status(400).json({
         message: "startTime and endTime must be in HH:mm format",
       });
+    }
+
+    const dateMatch = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(date);
+    if (!dateMatch) {
+      return res.status(400).json({ message: "Invalid appointment date format (YYYY-MM-DD required)" });
+    }
+
+    const year = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const day = Number(dateMatch[3]);
+
+    const appointmentDay = new Date(year, month - 1, day);
+    if (
+      Number.isNaN(appointmentDay.getTime()) ||
+      appointmentDay.getFullYear() !== year ||
+      appointmentDay.getMonth() !== month - 1 ||
+      appointmentDay.getDate() !== day
+    ) {
+      return res.status(400).json({ message: "Invalid appointment date" });
     }
 
     const toMinutes = (value) => {
@@ -134,13 +153,8 @@ const bookAppointment = async (req, res) => {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
-    const appointmentDate = new Date(date);
-    if (Number.isNaN(appointmentDate.getTime())) {
-      return res.status(400).json({ message: "Invalid appointment date" });
-    }
-
     const now = new Date();
-    const startDateTime = new Date(appointmentDate);
+    const startDateTime = new Date(appointmentDay);
     const [startHour, startMinute] = startTime.split(":").map(Number);
     startDateTime.setHours(startHour, startMinute, 0, 0);
 
@@ -150,7 +164,7 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-    const dayOfWeek = appointmentDate.getDay();
+    const dayOfWeek = appointmentDay.getDay();
     const doctorAvailabilities = await Availability.find({ doctorId, dayOfWeek }).select(
       "startTime endTime"
     );
@@ -167,29 +181,24 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-    const dayStart = new Date(appointmentDate);
+    const dayStart = new Date(appointmentDay);
     dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(appointmentDate);
+    const dayEnd = new Date(appointmentDay);
     dayEnd.setHours(23, 59, 59, 999);
 
-    const existingAppointments = await Appointment.find({
+    const conflictingAppointment = await Appointment.findOne({
       doctorId,
       date: { $gte: dayStart, $lte: dayEnd },
       status: { $ne: "cancelled" },
-    }).select("startTime endTime");
-
-    const hasOverlap = existingAppointments.some((item) => {
-      const existingStart = toMinutes(item.startTime);
-      const existingEnd = toMinutes(item.endTime);
-      return startMinutes < existingEnd && endMinutes > existingStart;
+      startTime: { $lt: endTime },
+      endTime: { $gt: startTime },
     });
 
-    if (hasOverlap) {
+    if (conflictingAppointment) {
       return res.status(400).json({ message: "This time slot is already booked" });
     }
 
-    const normalizedDate = new Date(appointmentDate);
-    normalizedDate.setHours(0, 0, 0, 0);
+    const normalizedDate = dayStart;
 
     const appointment = await Appointment.create({
       doctorId,
@@ -206,6 +215,12 @@ const bookAppointment = async (req, res) => {
       appointment,
     });
   } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        message: "This time slot is already booked",
+      });
+    }
+
     res.status(500).json({ message: error.message });
   }
 };
