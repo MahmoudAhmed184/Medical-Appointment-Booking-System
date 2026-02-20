@@ -1,7 +1,16 @@
 import mongoose from 'mongoose';
 
-const connectDB = async () => {
-    // TODO: Implement MongoDB connection using mongoose.connect()
+// Connection event listeners
+mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.warn('MongoDB disconnected');
+});
+
+const connectDB = () => {
+    return mongoose.connect(process.env.MONGODB_URI);
 };
 
 export { connectDB };

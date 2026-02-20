@@ -1,8 +1,59 @@
 import mongoose from 'mongoose';
 
 const doctorSchema = new mongoose.Schema(
-    // TODO: Implement doctor schema
+    {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: [true, 'User ID is required'],
+            unique: true,
+        },
+        specialtyId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Specialty',
+            required: [true, 'Specialty is required'],
+        },
+        bio: {
+            type: String,
+            trim: true,
+            maxlength: [500, 'Bio cannot exceed 500 characters'],
+        },
+        phone: {
+            type: String,
+            required: [true, 'Phone number is required'],
+            trim: true,
+            match: [
+                /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/,
+                'Please provide a valid phone number',
+            ],
+        },
+    },
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+    }
 );
+
+// Index for faster lookups
+//doctorSchema.index({ userId: 1 });
+//doctorSchema.index({ specialtyId: 1 });
+
+// Virtual populate for user details
+doctorSchema.virtual('user', {
+    ref: 'User',
+    localField: 'userId',
+    foreignField: '_id',
+    justOne: true,
+});
+
+// Virtual populate for specialty details
+doctorSchema.virtual('specialty', {
+    ref: 'Specialty',
+    localField: 'specialtyId',
+    foreignField: '_id',
+    justOne: true,
+});
 
 const Doctor = mongoose.model('Doctor', doctorSchema);
 

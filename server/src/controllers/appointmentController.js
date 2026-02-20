@@ -1,11 +1,26 @@
+import catchAsync from '../utils/catchAsync.js';
+import * as appointmentService from '../services/appointmentService.js';
+
 // TODO: Implement bookAppointment handler
 const bookAppointment = (req, res) => { };
 
 // TODO: Implement getMyAppointments handler
 const getMyAppointments = (req, res) => { };
 
-// TODO: Implement getAllAppointments handler
-const getAllAppointments = (req, res) => { };
+/**
+ * @desc    Get all appointments (paginated, filtered) — Admin view
+ * @route   GET /api/appointments/all
+ * @access  Admin
+ */
+const getAllAppointments = catchAsync(async (req, res) => {
+    const { appointments, pagination } = await appointmentService.getAllAppointments(req.query);
+
+    res.status(200).json({
+        success: true,
+        data: appointments,
+        pagination,
+    });
+});
 
 // TODO: Implement getAppointmentById handler
 const getAppointmentById = (req, res) => { };
