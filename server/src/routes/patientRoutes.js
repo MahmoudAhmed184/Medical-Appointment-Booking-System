@@ -2,7 +2,13 @@ import express from 'express';
 import auth from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
 import { ROLES } from '../utils/constants.js';
-import { getProfile, updateProfile , listAppointments, bookAppointment} from '../controllers/patientController.js';
+import {
+  getProfile,
+  updateProfile,
+  listAppointments,
+  bookAppointment,
+  cancelAppointment,
+} from '../controllers/patientController.js';
 
 const router = express.Router();
 
@@ -15,4 +21,5 @@ router.put("/profile", updateProfile);        // UPDATE profile
 // ===== Appointments =====
 router.get("/appointments", listAppointments); // GET all appointments of patient
 router.post("/appointments", bookAppointment); // BOOK a new appointment
+router.patch("/appointments/:id/cancel", cancelAppointment); // CANCEL appointment
 export default router;
