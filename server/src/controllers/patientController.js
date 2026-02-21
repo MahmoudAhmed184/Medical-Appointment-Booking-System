@@ -4,6 +4,7 @@ import Availability from "../models/Availability.js";
 import Doctor from "../models/Doctor.js";
 import User from "../models/User.js";
 import { isValidObjectId } from "mongoose";
+import { sendAppointmentConfirmation } from "../services/emailService.js";
 
 // ===== GET Profile =====
 const getProfile = async (req, res) => {
@@ -148,7 +149,7 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-    const doctor = await Doctor.findById(doctorId);
+    const doctor = await Doctor.findById(doctorId).populate("userId", "name");
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
     }
@@ -209,6 +210,21 @@ const bookAppointment = async (req, res) => {
       reason,
       status: "pending",
     });
+
+    if (req.user?.email) {
+      try {
+        await sendAppointmentConfirmation({
+          to: req.user.email,
+          patientName: req.user.name,
+          doctorName: doctor.userId?.name,
+          date,
+          startTime,
+          endTime,
+        });
+      } catch (mailError) {
+        console.error("Failed to send appointment confirmation email:", mailError.message);
+      }
+    }
 
     res.status(201).json({
       message: "Appointment booked successfully",
