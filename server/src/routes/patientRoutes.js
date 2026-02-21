@@ -8,6 +8,7 @@ import {
   listAppointments,
   bookAppointment,
   cancelAppointment,
+  rescheduleAppointment,
 } from '../controllers/patientController.js';
 
 const router = express.Router();
@@ -22,4 +23,5 @@ router.put("/profile", updateProfile);        // UPDATE profile
 router.get("/appointments", listAppointments); // GET all appointments of patient
 router.post("/appointments", bookAppointment); // BOOK a new appointment
 router.patch("/appointments/:id/cancel", cancelAppointment); // CANCEL appointment
+router.patch("/appointments/:id/reschedule", rescheduleAppointment); // RESCHEDULE appointment
 export default router;
