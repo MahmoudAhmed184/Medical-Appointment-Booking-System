@@ -60,6 +60,14 @@ const registerSchema = Joi.object({
             'any.required': 'Phone number is required',
         }),
 
+    address: Joi.string().trim().max(300).allow('').optional().messages({
+        'string.max': 'Address cannot exceed 300 characters',
+    }),
+
+    image: Joi.string().trim().uri().allow('').optional().messages({
+        'string.uri': 'Image must be a valid URL',
+    }),
+
     dateOfBirth: Joi.when('role', {
         is: 'patient',
         then: Joi.date().less('now').required().messages({

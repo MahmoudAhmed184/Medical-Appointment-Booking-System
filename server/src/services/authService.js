@@ -7,7 +7,7 @@ import { generateToken } from '../utils/tokenUtils.js';
 import { ROLES } from '../utils/constants.js';
 
 const register = async (userData) => {
-    const { name, email, password, role, specialtyId, bio, phone, dateOfBirth } = userData;
+    const { name, email, password, role, specialtyId, bio, phone, dateOfBirth, address, image } = userData;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -39,12 +39,16 @@ const register = async (userData) => {
             specialtyId,
             phone,
             ...(bio && { bio }),
+            ...(address !== undefined && { address }),
+            ...(image !== undefined && { image }),
         });
     } else if (role === ROLES.PATIENT) {
         await Patient.create({
             userId: user._id,
             phone,
             dateOfBirth,
+            ...(address !== undefined && { address }),
+            ...(image !== undefined && { image }),
         });
     }
 
