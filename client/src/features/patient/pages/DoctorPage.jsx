@@ -1,10 +1,11 @@
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
+import { getDoctorByIdApi } from "../services/patientApi";
 import {
   resetBookingState,
   setSelectedDate,
@@ -13,19 +14,77 @@ import {
   setShowSlots,
 } from "../../../store/slices/patientBookingSlice";
 
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 export default function DoctorPage() {
   const dispatch = useDispatch();
   const { doctorId } = useParams();
-  const { doctors } = useSelector((state) => state.patientDoctors);
   const { showSlots, selectedDate, selectedTime, showConfirmModal } = useSelector(
     (state) => state.patientBooking
   );
+  const [doctor, setDoctor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-   const location = useLocation();
-   const doctor = location.state?.doctor || doctors.find((d) => String(d.id) === String(doctorId));
-   const navigate =useNavigate();
+  const navigate = useNavigate();
 
-   if (!doctor) {
+  useEffect(() => {
+    const loadDoctor = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const { data } = await getDoctorByIdApi(doctorId);
+        const rawDoctor = data?.doctor || data?.data?.doctor || data?.data || null;
+
+        if (!rawDoctor) {
+          setDoctor(null);
+          setError('Doctor not found.');
+          return;
+        }
+
+        setDoctor({
+          id: rawDoctor?._id,
+          name: rawDoctor?.userId?.name || rawDoctor?.name || 'Doctor',
+          specialty: rawDoctor?.specialtyId?.name || rawDoctor?.specialty || 'Specialty',
+          image: rawDoctor?.image || 'https://i.pravatar.cc/100',
+          availablity: rawDoctor?.availabilityText || 'Availability not set',
+          bio: rawDoctor?.bio || 'No bio available.',
+          address: rawDoctor?.address || 'Address not available',
+          email: rawDoctor?.userId?.email || rawDoctor?.email || '-',
+          phone: rawDoctor?.phone || '-',
+          timeSlots: rawDoctor?.timeSlots || [],
+          availability: Array.isArray(rawDoctor?.availability) ? rawDoctor.availability : [],
+        });
+      } catch (err) {
+        setError(err?.response?.data?.message || 'Failed to load doctor details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (doctorId) loadDoctor();
+  }, [doctorId]);
+
+  const safeTimeSlots = useMemo(() => doctor?.timeSlots || [], [doctor]);
+  const availability = useMemo(() => doctor?.availability || [], [doctor]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading doctor details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (!doctor) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Doctor not found.</p>
@@ -74,6 +133,18 @@ export default function DoctorPage() {
             <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{doctor.availablity}</p>
             <p className="text-slate-700 dark:text-slate-200 mt-2">{doctor.bio}</p>
             <p className="text-slate-500 dark:text-slate-400 mt-2">{doctor.address}</p>
+            {availability.length > 0 && (
+              <div className="mt-2 rounded-lg bg-slate-50 dark:bg-slate-700/60 p-3 text-left">
+                <p className="text-sm font-semibold mb-2">Availability</p>
+                <div className="space-y-1 text-xs text-slate-600 dark:text-slate-200">
+                  {availability.map((slot, idx) => (
+                    <p key={`${slot.dayOfWeek}-${slot.startTime}-${idx}`}>
+                      {DAY_NAMES[slot.dayOfWeek] ?? slot.dayOfWeek}: {slot.startTime} - {slot.endTime}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-4 mt-4 justify-center">
               <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
                 <MdEmail className="text-blue-500" />
@@ -124,7 +195,7 @@ export default function DoctorPage() {
 
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Time:</label>
               <div className="flex flex-wrap gap-2">
-                {doctor.timeSlots.map((time) => (
+                {safeTimeSlots.map((time) => (
                   <button
                     key={time}
                     onClick={() => dispatch(setSelectedTime(time))}
@@ -137,6 +208,9 @@ export default function DoctorPage() {
                     {time}
                   </button>
                 ))}
+                {safeTimeSlots.length === 0 && (
+                  <p className="text-xs text-slate-500">No available slots yet.</p>
+                )}
               </div>
 
               <button

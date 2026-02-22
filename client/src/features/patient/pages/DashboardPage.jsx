@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
@@ -6,6 +6,7 @@ import DoctorCard from "../components/DoctorCard";
 import {
   clearSelectedDoctor,
   setFilterSpecialty,
+  fetchDoctors,
   setSearch,
   setSelectedDoctorById,
 } from "../../../store/slices/patientDoctorsSlice";
@@ -19,7 +20,7 @@ import {
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
-  const { doctors, search, filterSpecialty, selectedDoctorId } = useSelector(
+  const { doctors, search, filterSpecialty, selectedDoctorId, loading, error } = useSelector(
     (state) => state.patientDoctors
   );
   const { selectedDate, selectedTime, showConfirmModal } = useSelector(
@@ -30,6 +31,11 @@ export default function DashboardPage() {
  const handleDoctorClick=(doctor)=>{
   navigate(`/patient/doctor/${doctor.id}`,{state:{doctor}});
  }
+
+  useEffect(() => {
+    dispatch(fetchDoctors());
+  }, [dispatch]);
+
   const selectedDoctor = useMemo(
     () => doctors.find((doc) => doc.id === selectedDoctorId) || null,
     [doctors, selectedDoctorId]
@@ -123,6 +129,12 @@ export default function DashboardPage() {
           </div>
 
           {/* Doctor Cards */}
+          {loading && <p className="text-sm text-slate-500">Loading doctors...</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {!loading && !error && filteredDoctors.length === 0 && (
+            <p className="text-sm text-slate-500">No doctors found.</p>
+          )}
+
           {filteredDoctors.map((doc) => (
             <DoctorCard
               key={doc.id}

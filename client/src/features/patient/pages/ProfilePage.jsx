@@ -1,23 +1,88 @@
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
-  saveField,
-  setTempValue,
-  startEditField,
-} from "../../../store/slices/patientProfileSlice";
+  getPatientProfileApi,
+  updatePatientProfileApi,
+} from "../services/patientApi";
 
 export default function PatientProfile() {
-  const dispatch = useDispatch();
-  const { profile, editingField, tempValue } = useSelector(
-    (state) => state.patientProfile
-  );
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    dob: "",
+    image: "https://i.pravatar.cc/120",
+  });
+  const [editingField, setEditingField] = useState(null);
+  const [tempValue, setTempValue] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleEdit = (field) => {
-    dispatch(startEditField(field));
+    setEditingField(field);
+    setTempValue(profile[field] ?? "");
   };
 
-  const handleSave = (field) => {
-    dispatch(saveField(field));
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const { data } = await getPatientProfileApi();
+      const patient = data?.patient || data?.data?.patient || data?.data || null;
+      const user = patient?.user || patient?.userId || {};
+
+      setProfile({
+        name: user?.name || "",
+        email: user?.email || "",
+        phone: patient?.phone || "",
+        dob: patient?.dateOfBirth
+          ? new Date(patient.dateOfBirth).toISOString().slice(0, 10)
+          : "",
+        image: "https://i.pravatar.cc/120",
+      });
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const editableFields = useMemo(
+    () => [
+      { key: "name", label: "Name" },
+      { key: "email", label: "Email" },
+      { key: "phone", label: "Phone" },
+      { key: "dob", label: "Date of Birth" },
+    ],
+    []
+  );
+
+  const handleSave = async (field) => {
+    const nextProfile = { ...profile, [field]: tempValue };
+    setProfile(nextProfile);
+    setEditingField(null);
+
+    try {
+      setSaving(true);
+      setError("");
+      await updatePatientProfileApi({
+        name: nextProfile.name,
+        email: nextProfile.email,
+        phone: nextProfile.phone,
+        dateOfBirth: nextProfile.dob,
+      });
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to update profile");
+      // rollback by refetching backend state
+      await loadProfile();
+    } finally {
+      setSaving(false);
+    }
   };
 
    const navigate =useNavigate();
@@ -63,6 +128,9 @@ export default function PatientProfile() {
 </nav>
       {/* Main Content */}
       <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col gap-6">
+        {loading && <p className="text-sm text-slate-500">Loading profile...</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {saving && <p className="text-sm text-blue-600">Saving...</p>}
         
         {/* Profile Card */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-6 flex flex-col items-center gap-6">
@@ -75,28 +143,21 @@ export default function PatientProfile() {
 
           <div className="w-full flex flex-col gap-4">
 
-            {["firstName", "lastName", "dob", "gender", "email", "phone"].map((field) => (
-              <div key={field}>
-                <label className="text-sm text-slate-500 capitalize">{field === "dob" ? "Date of Birth" : field}</label>
-                {editingField === field ? (
+            {editableFields.map(({ key, label }) => (
+              <div key={key}>
+                <label className="text-sm text-slate-500 capitalize">{label}</label>
+                {editingField === key ? (
                   <div className="flex gap-2 mt-1">
-                    {field === "gender" ? (
-                      <select value={tempValue} onChange={(e) => dispatch(setTempValue(e.target.value))} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white">
-                        <option>Male</option>
-                        <option>Female</option>
-                        <option>Non-binary</option>
-                        <option>Prefer not to say</option>
-                      </select>
-                    ) : field === "dob" ? (
-                      <input type="date" value={tempValue} onChange={(e) => dispatch(setTempValue(e.target.value))} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
+                    {key === "dob" ? (
+                      <input type="date" value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
                     ) : (
-                      <input value={tempValue} onChange={(e) => dispatch(setTempValue(e.target.value))} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
+                      <input value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
                     )}
-                    <button onClick={() => handleSave(field)} className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">Save</button>
+                    <button onClick={() => handleSave(key)} className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">Save</button>
                   </div>
                 ) : (
-                  <p className="mt-1 text-lg cursor-pointer" onClick={() => handleEdit(field)}>
-                    {profile[field]}
+                  <p className="mt-1 text-lg cursor-pointer" onClick={() => handleEdit(key)}>
+                    {profile[key] || "-"}
                   </p>
                 )}
               </div>

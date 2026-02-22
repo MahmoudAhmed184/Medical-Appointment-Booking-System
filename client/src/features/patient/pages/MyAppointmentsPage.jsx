@@ -10,7 +10,7 @@ import AppointmentList from '../components/AppointmentList';
 
 export default function MyAppointmentsPage() {
   const dispatch = useDispatch();
-  const { appointments, loading } = useSelector((state) => state.appointments);
+  const { appointments, loading, error } = useSelector((state) => state.appointments);
 
   useEffect(() => {
     dispatch(fetchMyAppointments());
@@ -89,6 +89,17 @@ export default function MyAppointmentsPage() {
         <p className="text-slate-500 mb-6">Here are all your booked appointments.</p>
 
         {loading && <p className="mb-4">Loading appointments...</p>}
+        {error && (
+          <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+
+        {!loading && !error && mappedAppointments.length === 0 && (
+          <p className="mb-4 rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-600">
+            No appointments yet.
+          </p>
+        )}
 
         {/* Appointments List */}
         <AppointmentList
