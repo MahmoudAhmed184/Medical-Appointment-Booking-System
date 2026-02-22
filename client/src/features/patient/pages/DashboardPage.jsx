@@ -109,6 +109,7 @@ export default function DashboardPage() {
   const [bookingError, setBookingError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patientNav, setPatientNav] = useState({ name: "Patient", image: PATIENT_DEFAULT_AVATAR });
+  const [addressSearch, setAddressSearch] = useState("");
 
  const navigate =useNavigate();
  const handleDoctorClick=(doctor)=>{
@@ -145,13 +146,30 @@ export default function DashboardPage() {
   const filteredDoctors = useMemo(
     () =>
       doctors.filter((doc) => {
-        const matchesName = doc.name.toLowerCase().includes(search.toLowerCase());
+        const matchesName = String(doc.name || "")
+          .toLowerCase()
+          .includes(String(search || "").toLowerCase());
+        const matchesAddress = String(doc.address || "")
+          .toLowerCase()
+          .includes(String(addressSearch || "").toLowerCase());
         const matchesSpecialty =
-          filterSpecialty === "All" || doc.specialty === filterSpecialty;
-        return matchesName && matchesSpecialty;
+          filterSpecialty === "All" || String(doc.specialty || "") === filterSpecialty;
+        return matchesName && matchesAddress && matchesSpecialty;
       }),
-    [doctors, search, filterSpecialty]
+    [doctors, search, addressSearch, filterSpecialty]
   );
+
+  const specialtyOptions = useMemo(() => {
+    const values = Array.from(
+      new Set(
+        doctors
+          .map((doc) => String(doc.specialty || "").trim())
+          .filter(Boolean)
+      )
+    ).sort((a, b) => a.localeCompare(b));
+
+    return ["All", ...values];
+  }, [doctors]);
 
   const startOptions = useMemo(
     () => getStartOptions(selectedDoctor?.availability || [], selectedDate),
@@ -250,9 +268,16 @@ export default function DashboardPage() {
           <div className="flex flex-col md:flex-row gap-4 p-4 rounded-xl shadow bg-white mb-4">
             <input
               type="text"
-              placeholder="Search doctors..."
+              placeholder="Search by doctor name..."
               value={search}
               onChange={(e) => dispatch(setSearch(e.target.value))}
+              className="flex-1 border rounded-lg px-3 py-2"
+            />
+            <input
+              type="text"
+              placeholder="Search by address..."
+              value={addressSearch}
+              onChange={(e) => setAddressSearch(e.target.value)}
               className="flex-1 border rounded-lg px-3 py-2"
             />
             <select
@@ -260,12 +285,16 @@ export default function DashboardPage() {
               onChange={(e) => dispatch(setFilterSpecialty(e.target.value))}
               className="border rounded-lg px-3 py-2"
             >
-              <option>All</option>
-              <option>Cardiologist</option>
-              <option>Dermatologist</option>
+              {specialtyOptions.map((specialty) => (
+                <option key={specialty} value={specialty}>
+                  {specialty}
+                </option>
+              ))}
             </select>
             <button
-              onClick={() => {}}
+              onClick={() => {
+                // Filtering is applied live by controlled fields.
+              }}
               className="px-5 py-2 rounded-lg text-white bg-[#137fec]"
             >
               Search
