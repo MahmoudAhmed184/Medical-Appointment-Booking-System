@@ -2,7 +2,21 @@ import React from 'react'
 import { FaCalendarAlt } from "react-icons/fa";
 import { IoTime } from "react-icons/io5";
 
-export default function BookConfirmModal({ doctor, selectedTime, selectedDate, onDone }) {
+export default function BookConfirmModal({
+  doctor,
+  selectedTime,
+  selectedStartTime,
+  selectedEndTime,
+  selectedDate,
+  reason,
+  onDone,
+}) {
+  const bookedTime =
+    selectedTime ||
+    (selectedStartTime && selectedEndTime
+      ? `${selectedStartTime} - ${selectedEndTime}`
+      : selectedStartTime || '-');
+
   return (
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
@@ -20,8 +34,14 @@ export default function BookConfirmModal({ doctor, selectedTime, selectedDate, o
       <div className="text-md text-slate-500 dark:text-slate-400">
         <FaCalendarAlt className="inline mr-2 text-blue-500" /> {selectedDate}  
         <br/>
-        <IoTime className="inline mr-2 text-blue-500"/> {selectedTime}
+        <IoTime className="inline mr-2 text-blue-500"/> {bookedTime}
       </div>
+
+      {reason && (
+        <p className="text-sm text-slate-600 dark:text-slate-300 text-left bg-slate-50 dark:bg-slate-700/40 rounded-lg p-3">
+          <span className="font-semibold">Reason:</span> {reason}
+        </p>
+      )}
 
       <button
         onClick={() => {

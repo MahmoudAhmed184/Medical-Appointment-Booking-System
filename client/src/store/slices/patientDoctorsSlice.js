@@ -1,6 +1,34 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getDoctorsApi } from '../../features/patient/services/patientApi';
 
+const normalizeAvailability = (availability) =>
+    Array.from(
+        new Map(
+            (Array.isArray(availability) ? availability : [])
+                .map((slot) => ({
+                    dayOfWeek: Number(slot?.dayOfWeek),
+                    startTime: slot?.startTime || '',
+                    endTime: slot?.endTime || '',
+                }))
+                .filter(
+                    (slot) =>
+                        Number.isInteger(slot.dayOfWeek) &&
+                        slot.dayOfWeek >= 0 &&
+                        slot.dayOfWeek <= 6 &&
+                        slot.startTime &&
+                        slot.endTime
+                )
+                .map((slot) => [
+                    `${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}`,
+                    slot,
+                ])
+        ).values()
+    )
+        .sort((a, b) => {
+            if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+            return String(a.startTime).localeCompare(String(b.startTime));
+        });
+
 const mapDoctor = (doctor) => ({
     id: doctor?._id || doctor?.id,
     name: doctor?.userId?.name || doctor?.name || 'Doctor',
@@ -12,7 +40,7 @@ const mapDoctor = (doctor) => ({
     email: doctor?.userId?.email || doctor?.email || '-',
     phone: doctor?.phone || '-',
     timeSlots: doctor?.timeSlots || [],
-    availability: Array.isArray(doctor?.availability) ? doctor.availability : [],
+    availability: normalizeAvailability(doctor?.availability),
 });
 
 export const fetchDoctors = createAsyncThunk(

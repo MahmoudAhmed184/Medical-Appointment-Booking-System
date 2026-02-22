@@ -5,6 +5,8 @@ const getStatusClass = (status) => {
 };
 
 const AppointmentCard = ({ appointment, onCancel, onReschedule }) => {
+  const isCancelled = String(appointment?.rawStatus || '').toLowerCase() === 'cancelled';
+
   return (
     <div className="p-5 rounded-xl shadow hover:shadow-lg transition bg-white dark:bg-slate-800 flex gap-4 items-center">
       <img
@@ -20,22 +22,24 @@ const AppointmentCard = ({ appointment, onCancel, onReschedule }) => {
           {appointment.status}
         </span>
 
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            onClick={() => onCancel?.(appointment.id)}
-            className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => onReschedule?.(appointment.id)}
-            className="px-3 py-1.5 rounded-md bg-[#137fec] text-white text-sm"
-          >
-            Reschedule
-          </button>
-        </div>
+        {!isCancelled && (
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => onCancel?.(appointment.id)}
+              className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => onReschedule?.(appointment.id)}
+              className="px-3 py-1.5 rounded-md bg-[#137fec] text-white text-sm"
+            >
+              Reschedule
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

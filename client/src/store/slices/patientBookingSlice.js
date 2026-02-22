@@ -3,6 +3,9 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     selectedDate: '',
     selectedTime: '',
+    selectedStartTime: '',
+    selectedEndTime: '',
+    reason: '',
     showSlots: false,
     showConfirmModal: false,
 };
@@ -17,6 +20,15 @@ const patientBookingSlice = createSlice({
         setSelectedTime: (state, action) => {
             state.selectedTime = action.payload;
         },
+        setSelectedStartTime: (state, action) => {
+            state.selectedStartTime = action.payload;
+        },
+        setSelectedEndTime: (state, action) => {
+            state.selectedEndTime = action.payload;
+        },
+        setReason: (state, action) => {
+            state.reason = action.payload;
+        },
         setShowSlots: (state, action) => {
             state.showSlots = action.payload;
         },
@@ -30,6 +42,9 @@ const patientBookingSlice = createSlice({
 export const {
     setSelectedDate,
     setSelectedTime,
+    setSelectedStartTime,
+    setSelectedEndTime,
+    setReason,
     setShowSlots,
     setShowConfirmModal,
     resetBookingState,

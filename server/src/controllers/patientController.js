@@ -6,6 +6,8 @@ import User from "../models/User.js";
 import { isValidObjectId } from "mongoose";
 import { sendAppointmentConfirmation } from "../services/emailService.js";
 
+const MAX_APPOINTMENT_DURATION_MINUTES = 60;
+
 // ===== GET Profile =====
 const getProfile = async (req, res) => {
   try {
@@ -56,7 +58,10 @@ const listAppointments = async (req, res) => {
     const appointments = await Appointment.find({ patientId: patient._id })
       .populate({
         path: "doctorId",
-        populate: { path: "userId", select: "name email" },
+        populate: [
+          { path: "userId", select: "name email" },
+          { path: "specialtyId", select: "name" },
+        ],
       })
       .sort({ date: 1 });
 
@@ -154,6 +159,12 @@ const rescheduleAppointment = async (req, res) => {
     const endMinutes = toMinutes(endTime);
     if (endMinutes <= startMinutes) {
       return res.status(400).json({ message: "endTime must be greater than startTime" });
+    }
+
+    if (endMinutes - startMinutes > MAX_APPOINTMENT_DURATION_MINUTES) {
+      return res
+        .status(400)
+        .json({ message: "Appointment duration cannot exceed 1 hour" });
     }
 
     const now = new Date();
@@ -268,6 +279,12 @@ const bookAppointment = async (req, res) => {
     if (endMinutes <= startMinutes) {
       return res.status(400).json({
         message: "endTime must be greater than startTime",
+      });
+    }
+
+    if (endMinutes - startMinutes > MAX_APPOINTMENT_DURATION_MINUTES) {
+      return res.status(400).json({
+        message: "Appointment duration cannot exceed 1 hour",
       });
     }
 

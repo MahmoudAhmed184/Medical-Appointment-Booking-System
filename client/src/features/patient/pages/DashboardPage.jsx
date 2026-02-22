@@ -1,8 +1,10 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
 import DoctorCard from "../components/DoctorCard";
+import { bookAppointmentApi } from "../services/patientApi";
+import { fetchMyAppointments } from "../../../store/slices/appointmentSlice";
 import {
   clearSelectedDoctor,
   setFilterSpecialty,
@@ -12,10 +14,80 @@ import {
 } from "../../../store/slices/patientDoctorsSlice";
 import {
   resetBookingState,
+  setReason,
   setSelectedDate,
+  setSelectedEndTime,
+  setSelectedStartTime,
   setSelectedTime,
   setShowConfirmModal,
 } from "../../../store/slices/patientBookingSlice";
+
+const TIME_STEP_MINUTES = 15;
+const MAX_APPOINTMENT_DURATION_MINUTES = 60;
+
+const toMinutes = (value) => {
+  const [hours, minutes] = String(value || "").split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  return hours * 60 + minutes;
+};
+
+const toTimeString = (minutes) => {
+  const h = String(Math.floor(minutes / 60)).padStart(2, "0");
+  const m = String(minutes % 60).padStart(2, "0");
+  return `${h}:${m}`;
+};
+
+const getDayAvailability = (availability, dateValue) => {
+  if (!dateValue) return [];
+  const selectedDate = new Date(dateValue);
+  if (Number.isNaN(selectedDate.getTime())) return [];
+  const selectedDay = selectedDate.getDay();
+  return (availability || []).filter((slot) => Number(slot.dayOfWeek) === selectedDay);
+};
+
+const getStartOptions = (availability, dateValue) => {
+  const daySlots = getDayAvailability(availability, dateValue);
+  const options = new Set();
+
+  daySlots.forEach((slot) => {
+    const slotStart = toMinutes(slot.startTime);
+    const slotEnd = toMinutes(slot.endTime);
+    if (slotStart === null || slotEnd === null || slotEnd <= slotStart) return;
+
+    for (let minute = slotStart; minute < slotEnd; minute += TIME_STEP_MINUTES) {
+      options.add(toTimeString(minute));
+    }
+  });
+
+  return Array.from(options).sort();
+};
+
+const getEndOptions = (availability, dateValue, selectedStartTime) => {
+  if (!selectedStartTime) return [];
+  const startMinutes = toMinutes(selectedStartTime);
+  if (startMinutes === null) return [];
+
+  const daySlots = getDayAvailability(availability, dateValue);
+  const options = new Set();
+
+  daySlots.forEach((slot) => {
+    const slotStart = toMinutes(slot.startTime);
+    const slotEnd = toMinutes(slot.endTime);
+    if (slotStart === null || slotEnd === null || slotEnd <= slotStart) return;
+    if (startMinutes < slotStart || startMinutes >= slotEnd) return;
+
+    const maxEnd = Math.min(slotEnd, startMinutes + MAX_APPOINTMENT_DURATION_MINUTES);
+    for (
+      let minute = startMinutes + TIME_STEP_MINUTES;
+      minute <= maxEnd;
+      minute += TIME_STEP_MINUTES
+    ) {
+      options.add(toTimeString(minute));
+    }
+  });
+
+  return Array.from(options).sort();
+};
 
 
 export default function DashboardPage() {
@@ -23,9 +95,18 @@ export default function DashboardPage() {
   const { doctors, search, filterSpecialty, selectedDoctorId, loading, error } = useSelector(
     (state) => state.patientDoctors
   );
-  const { selectedDate, selectedTime, showConfirmModal } = useSelector(
+  const {
+    selectedDate,
+    selectedTime,
+    selectedStartTime,
+    selectedEndTime,
+    reason,
+    showConfirmModal,
+  } = useSelector(
     (state) => state.patientBooking
   );
+  const [bookingError, setBookingError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
  const navigate =useNavigate();
  const handleDoctorClick=(doctor)=>{
@@ -51,6 +132,49 @@ export default function DashboardPage() {
       }),
     [doctors, search, filterSpecialty]
   );
+
+  const startOptions = useMemo(
+    () => getStartOptions(selectedDoctor?.availability || [], selectedDate),
+    [selectedDoctor, selectedDate]
+  );
+
+  const endOptions = useMemo(
+    () => getEndOptions(selectedDoctor?.availability || [], selectedDate, selectedStartTime),
+    [selectedDoctor, selectedDate, selectedStartTime]
+  );
+
+  const handleConfirmAppointment = async () => {
+    if (
+      !selectedDoctor?.id ||
+      !selectedDate ||
+      !selectedStartTime ||
+      !selectedEndTime ||
+      reason.trim().length < 10
+    ) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setBookingError("");
+
+      await bookAppointmentApi({
+        doctorId: selectedDoctor.id,
+        date: selectedDate,
+        startTime: selectedStartTime,
+        endTime: selectedEndTime,
+        reason: reason.trim(),
+      });
+
+      dispatch(fetchMyAppointments());
+
+      dispatch(setShowConfirmModal(true));
+    } catch (err) {
+      setBookingError(err?.response?.data?.message || "Failed to book appointment. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f7f8] dark:bg-[#101922] text-slate-800 dark:text-slate-100">
@@ -144,6 +268,10 @@ export default function DashboardPage() {
                 dispatch(setSelectedDoctorById(doctor.id));
                 dispatch(setSelectedDate(""));
                 dispatch(setSelectedTime(""));
+                dispatch(setSelectedStartTime(""));
+                dispatch(setSelectedEndTime(""));
+                dispatch(setReason(""));
+                setBookingError("");
               }}
             />
           ))}
@@ -162,6 +290,10 @@ export default function DashboardPage() {
                     dispatch(clearSelectedDoctor());
                     dispatch(setSelectedDate(""));
                     dispatch(setSelectedTime(""));
+                    dispatch(setSelectedStartTime(""));
+                    dispatch(setSelectedEndTime(""));
+                    dispatch(setReason(""));
+                    setBookingError("");
                   }}
                   className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
                 >
@@ -174,37 +306,87 @@ export default function DashboardPage() {
                 type="date"
                 className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
                 value={selectedDate}
-                onChange={(e) => dispatch(setSelectedDate(e.target.value))}
+                onChange={(e) => {
+                  dispatch(setSelectedDate(e.target.value));
+                  dispatch(setSelectedStartTime(""));
+                  dispatch(setSelectedEndTime(""));
+                  dispatch(setSelectedTime(""));
+                }}
               />
 
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Time:</label>
-              <div className="flex flex-wrap gap-2">
-                {selectedDoctor.timeSlots.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => dispatch(setSelectedTime(time))}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                      selectedTime === time
-                        ? "bg-[#137fec] text-white"
-                        : "border border-slate-300 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-                    }`}
-                  >
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Start Time:</label>
+              <select
+                className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
+                value={selectedStartTime}
+                onChange={(e) => {
+                  const nextStart = e.target.value;
+                  dispatch(setSelectedStartTime(nextStart));
+                  dispatch(setSelectedEndTime(""));
+                  dispatch(setSelectedTime(""));
+                }}
+                disabled={!selectedDate || startOptions.length === 0}
+              >
+                <option value="">Choose start time</option>
+                {startOptions.map((time) => (
+                  <option key={time} value={time}>
                     {time}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </select>
+
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select End Time:</label>
+              <select
+                className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
+                value={selectedEndTime}
+                onChange={(e) => {
+                  const nextEnd = e.target.value;
+                  dispatch(setSelectedEndTime(nextEnd));
+                  dispatch(
+                    setSelectedTime(
+                      selectedStartTime && nextEnd ? `${selectedStartTime} - ${nextEnd}` : ""
+                    )
+                  );
+                }}
+                disabled={!selectedStartTime || endOptions.length === 0}
+              >
+                <option value="">Choose end time</option>
+                {endOptions.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Reason:</label>
+              <textarea
+                className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
+                rows={3}
+                placeholder="Describe your issue (minimum 10 characters)"
+                value={reason}
+                onChange={(e) => dispatch(setReason(e.target.value))}
+              />
 
               <button
-                disabled={!selectedDate || !selectedTime}
+                disabled={
+                  isSubmitting ||
+                  !selectedDate ||
+                  !selectedStartTime ||
+                  !selectedEndTime ||
+                  reason.trim().length < 10
+                }
                 className={`w-full py-2 rounded-lg font-semibold transition ${
-                  selectedDate && selectedTime
+                  selectedDate &&
+                  selectedStartTime &&
+                  selectedEndTime &&
+                  reason.trim().length >= 10
                     ? "bg-[#137fec] text-white hover:bg-[#137fec]/90"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 }`}
-                onClick={() => dispatch(setShowConfirmModal(true))}
+                onClick={handleConfirmAppointment}
               >
-                Confirm Appointment
+                {isSubmitting ? "Booking..." : "Confirm Appointment"}
               </button>
+              {bookingError && <p className="text-xs text-red-600">{bookingError}</p>}
             </div>
           </div>
         )}
@@ -215,6 +397,9 @@ export default function DashboardPage() {
                 doctor={selectedDoctor}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
+                selectedStartTime={selectedStartTime}
+                selectedEndTime={selectedEndTime}
+                reason={reason}
                 onDone={() => {
                   dispatch(setShowConfirmModal(false));
                   dispatch(resetBookingState());

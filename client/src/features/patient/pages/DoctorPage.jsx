@@ -5,26 +5,131 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
-import { getDoctorByIdApi } from "../services/patientApi";
+import { bookAppointmentApi, getDoctorByIdApi } from "../services/patientApi";
+import { fetchMyAppointments } from "../../../store/slices/appointmentSlice";
 import {
   resetBookingState,
+  setReason,
   setSelectedDate,
+  setSelectedEndTime,
+  setSelectedStartTime,
   setSelectedTime,
   setShowConfirmModal,
   setShowSlots,
 } from "../../../store/slices/patientBookingSlice";
 
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const TIME_STEP_MINUTES = 15;
+const MAX_APPOINTMENT_DURATION_MINUTES = 60;
+
+const toMinutes = (value) => {
+  const [hours, minutes] = String(value || '').split(':').map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  return hours * 60 + minutes;
+};
+
+const toTimeString = (minutes) => {
+  const h = String(Math.floor(minutes / 60)).padStart(2, '0');
+  const m = String(minutes % 60).padStart(2, '0');
+  return `${h}:${m}`;
+};
+
+const getDayAvailability = (availability, dateValue) => {
+  if (!dateValue) return [];
+  const selectedDate = new Date(dateValue);
+  if (Number.isNaN(selectedDate.getTime())) return [];
+  const selectedDay = selectedDate.getDay();
+  return availability.filter((slot) => Number(slot.dayOfWeek) === selectedDay);
+};
+
+const getStartOptions = (availability, dateValue) => {
+  const daySlots = getDayAvailability(availability, dateValue);
+  const options = new Set();
+
+  daySlots.forEach((slot) => {
+    const slotStart = toMinutes(slot.startTime);
+    const slotEnd = toMinutes(slot.endTime);
+    if (slotStart === null || slotEnd === null || slotEnd <= slotStart) return;
+
+    for (let minute = slotStart; minute < slotEnd; minute += TIME_STEP_MINUTES) {
+      options.add(toTimeString(minute));
+    }
+  });
+
+  return Array.from(options).sort();
+};
+
+const getEndOptions = (availability, dateValue, selectedStartTime) => {
+  if (!selectedStartTime) return [];
+  const startMinutes = toMinutes(selectedStartTime);
+  if (startMinutes === null) return [];
+
+  const daySlots = getDayAvailability(availability, dateValue);
+  const options = new Set();
+
+  daySlots.forEach((slot) => {
+    const slotStart = toMinutes(slot.startTime);
+    const slotEnd = toMinutes(slot.endTime);
+    if (slotStart === null || slotEnd === null || slotEnd <= slotStart) return;
+    if (startMinutes < slotStart || startMinutes >= slotEnd) return;
+
+    const maxEnd = Math.min(slotEnd, startMinutes + MAX_APPOINTMENT_DURATION_MINUTES);
+    for (
+      let minute = startMinutes + TIME_STEP_MINUTES;
+      minute <= maxEnd;
+      minute += TIME_STEP_MINUTES
+    ) {
+      options.add(toTimeString(minute));
+    }
+  });
+
+  return Array.from(options).sort();
+};
+
+const normalizeAvailability = (availability) =>
+  Array.from(
+    new Map(
+      (Array.isArray(availability) ? availability : [])
+        .map((slot) => ({
+          dayOfWeek: Number(slot?.dayOfWeek),
+          startTime: slot?.startTime || '',
+          endTime: slot?.endTime || '',
+        }))
+        .filter(
+          (slot) =>
+            Number.isInteger(slot.dayOfWeek) &&
+            slot.dayOfWeek >= 0 &&
+            slot.dayOfWeek <= 6 &&
+            slot.startTime &&
+            slot.endTime
+        )
+        .map((slot) => [`${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}`, slot])
+    ).values()
+  )
+    .sort((a, b) => {
+      if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+      return String(a.startTime).localeCompare(String(b.startTime));
+    });
 
 export default function DoctorPage() {
   const dispatch = useDispatch();
   const { doctorId } = useParams();
-  const { showSlots, selectedDate, selectedTime, showConfirmModal } = useSelector(
+  const {
+    showSlots,
+    selectedDate,
+    selectedTime,
+    selectedStartTime,
+    selectedEndTime,
+    reason,
+    showConfirmModal,
+  } = useSelector(
     (state) => state.patientBooking
   );
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [bookingError, setBookingError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
@@ -53,7 +158,7 @@ export default function DoctorPage() {
           email: rawDoctor?.userId?.email || rawDoctor?.email || '-',
           phone: rawDoctor?.phone || '-',
           timeSlots: rawDoctor?.timeSlots || [],
-          availability: Array.isArray(rawDoctor?.availability) ? rawDoctor.availability : [],
+          availability: normalizeAvailability(rawDoctor?.availability),
         });
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to load doctor details.');
@@ -67,6 +172,14 @@ export default function DoctorPage() {
 
   const safeTimeSlots = useMemo(() => doctor?.timeSlots || [], [doctor]);
   const availability = useMemo(() => doctor?.availability || [], [doctor]);
+  const startOptions = useMemo(
+    () => getStartOptions(availability, selectedDate),
+    [availability, selectedDate]
+  );
+  const endOptions = useMemo(
+    () => getEndOptions(availability, selectedDate, selectedStartTime),
+    [availability, selectedDate, selectedStartTime]
+  );
 
   if (loading) {
     return (
@@ -91,6 +204,34 @@ export default function DoctorPage() {
       </div>
     );
    }
+
+  const handleConfirmAppointment = async () => {
+    if (!doctor?.id || !selectedDate || !selectedStartTime || !selectedEndTime || reason.trim().length < 10) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setBookingError('');
+
+      await bookAppointmentApi({
+        doctorId: doctor.id,
+        date: selectedDate,
+        startTime: selectedStartTime,
+        endTime: selectedEndTime,
+        reason: reason.trim(),
+      });
+
+      dispatch(fetchMyAppointments());
+
+      dispatch(setShowConfirmModal(true));
+      dispatch(setShowSlots(false));
+    } catch (err) {
+      setBookingError(err?.response?.data?.message || 'Failed to book appointment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-display flex flex-col">
@@ -130,7 +271,9 @@ export default function DoctorPage() {
           <div className="w-full flex flex-col gap-4 text-center">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{doctor.name}</h1>
             <p className="text-blue-500 font-medium">{doctor.specialty}</p>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{doctor.availablity}</p>
+            {availability.length === 0 && (
+              <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Availability not set</p>
+            )}
             <p className="text-slate-700 dark:text-slate-200 mt-2">{doctor.bio}</p>
             <p className="text-slate-500 dark:text-slate-400 mt-2">{doctor.address}</p>
             {availability.length > 0 && (
@@ -178,6 +321,9 @@ export default function DoctorPage() {
                     dispatch(setShowSlots(false));
                     dispatch(setSelectedDate(""));
                     dispatch(setSelectedTime(""));
+                    dispatch(setSelectedStartTime(""));
+                    dispatch(setSelectedEndTime(""));
+                    dispatch(setReason(""));
                   }}
                   className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
                 >
@@ -190,43 +336,100 @@ export default function DoctorPage() {
                 type="date"
                 className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
                 value={selectedDate}
-                onChange={(e) => dispatch(setSelectedDate(e.target.value))}
+                onChange={(e) => {
+                  dispatch(setSelectedDate(e.target.value));
+                  dispatch(setSelectedStartTime(""));
+                  dispatch(setSelectedEndTime(""));
+                  dispatch(setSelectedTime(""));
+                }}
               />
 
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Time:</label>
-              <div className="flex flex-wrap gap-2">
-                {safeTimeSlots.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => dispatch(setSelectedTime(time))}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                      selectedTime === time
-                        ? "bg-[#137fec] text-white"
-                        : "border border-slate-300 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-                    }`}
-                  >
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Start Time:</label>
+              <select
+                className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
+                value={selectedStartTime}
+                onChange={(e) => {
+                  const nextStart = e.target.value;
+                  dispatch(setSelectedStartTime(nextStart));
+                  dispatch(setSelectedEndTime(""));
+                  dispatch(setSelectedTime(""));
+                }}
+                disabled={!selectedDate || startOptions.length === 0}
+              >
+                <option value="">Choose start time</option>
+                {startOptions.map((time) => (
+                  <option key={time} value={time}>
                     {time}
-                  </button>
+                  </option>
                 ))}
-                {safeTimeSlots.length === 0 && (
-                  <p className="text-xs text-slate-500">No available slots yet.</p>
-                )}
-              </div>
+              </select>
+
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select End Time:</label>
+              <select
+                className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
+                value={selectedEndTime}
+                onChange={(e) => {
+                  const nextEnd = e.target.value;
+                  dispatch(setSelectedEndTime(nextEnd));
+                  dispatch(
+                    setSelectedTime(
+                      selectedStartTime && nextEnd ? `${selectedStartTime} - ${nextEnd}` : ""
+                    )
+                  );
+                }}
+                disabled={!selectedStartTime || endOptions.length === 0}
+              >
+                <option value="">Choose end time</option>
+                {endOptions.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+
+              {selectedDate && startOptions.length === 0 && safeTimeSlots.length === 0 && (
+                <p className="text-xs text-slate-500">
+                  No availability for this day.
+                </p>
+              )}
+              {selectedStartTime && endOptions.length === 0 && (
+                <p className="text-xs text-slate-500">
+                  No valid end time for this start (maximum duration is 1 hour).
+                </p>
+              )}
+
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Reason:</label>
+              <textarea
+                className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
+                rows={3}
+                placeholder="Describe your issue (minimum 10 characters)"
+                value={reason}
+                onChange={(e) => dispatch(setReason(e.target.value))}
+              />
 
               <button
-                disabled={!selectedDate || !selectedTime}
+                disabled={
+                  isSubmitting ||
+                  !selectedDate ||
+                  !selectedStartTime ||
+                  !selectedEndTime ||
+                  reason.trim().length < 10
+                }
                 className={`w-full py-2 rounded-lg font-semibold transition ${
-                  selectedDate && selectedTime
+                  selectedDate &&
+                  selectedStartTime &&
+                  selectedEndTime &&
+                  reason.trim().length >= 10
                     ? "bg-[#137fec] text-white hover:bg-[#137fec]/90"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 }`}
-                onClick={() => {
-                  dispatch(setShowConfirmModal(true));
-                  dispatch(setShowSlots(false));
-                }}
+                onClick={handleConfirmAppointment}
               >
-                Confirm Appointment
+                {isSubmitting ? 'Booking...' : 'Confirm Appointment'}
               </button>
+              {bookingError && (
+                <p className="text-xs text-red-600">{bookingError}</p>
+              )}
             </div>
           )}
 
@@ -237,6 +440,9 @@ export default function DoctorPage() {
           doctor={doctor}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
+          selectedStartTime={selectedStartTime}
+          selectedEndTime={selectedEndTime}
+          reason={reason}
           onDone={() => {
             dispatch(setShowConfirmModal(false));
             dispatch(resetBookingState());

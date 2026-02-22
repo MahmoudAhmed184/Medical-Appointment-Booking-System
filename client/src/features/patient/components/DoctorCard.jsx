@@ -1,7 +1,7 @@
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const DoctorCard = ({ doctor, onOpenDoctor, onBook }) => {
-  const previewAvailability = (doctor.availability || []).slice(0, 2);
+  const availability = doctor.availability || [];
 
   return (
     <div
@@ -14,15 +14,17 @@ const DoctorCard = ({ doctor, onOpenDoctor, onBook }) => {
           <h3 className="font-bold text-lg">{doctor.name}</h3>
           <p className="text-[#137fec] text-sm">{doctor.specialty}</p>
           <p className="text-sm mt-2 text-slate-500">Address: {doctor.address}</p>
-          <p className="text-sm mt-1 text-slate-400">Availablity: {doctor.availablity}</p>
-          {previewAvailability.length > 0 && (
+          {availability.length > 0 && (
             <div className="mt-2 text-xs text-slate-500 space-y-1">
-              {previewAvailability.map((slot, idx) => (
+              {availability.map((slot, idx) => (
                 <p key={`${slot.dayOfWeek}-${slot.startTime}-${idx}`}>
                   {DAY_NAMES[slot.dayOfWeek] ?? slot.dayOfWeek}: {slot.startTime} - {slot.endTime}
                 </p>
               ))}
             </div>
+          )}
+          {availability.length === 0 && (
+            <p className="text-sm mt-1 text-slate-400">Availability not set</p>
           )}
           <button
             onClick={(e) => {
