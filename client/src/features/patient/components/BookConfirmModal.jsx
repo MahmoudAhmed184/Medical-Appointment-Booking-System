@@ -2,7 +2,7 @@ import React from 'react'
 import { FaCalendarAlt } from "react-icons/fa";
 import { IoTime } from "react-icons/io5";
 
-export default function BookConfirmModal({ doctor, selectedTime, selectedDate,setSelectedDate, setSelectedTime, setShowConfirmModal}) {
+export default function BookConfirmModal({ doctor, selectedTime, selectedDate, onDone }) {
   return (
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
@@ -25,10 +25,7 @@ export default function BookConfirmModal({ doctor, selectedTime, selectedDate,se
 
       <button
         onClick={() => {
-          setShowConfirmModal(false);
-          setShowSlots(false);
-          setSelectedDate("");
-          setSelectedTime("");
+          if (onDone) onDone();
         }}
         className="mt-4 py-2 bg-[#137fec] text-white rounded-lg hover:bg-[#137fec]/90 transition"
       >

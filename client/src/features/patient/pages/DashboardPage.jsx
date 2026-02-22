@@ -1,55 +1,50 @@
-import { Book, Email } from "@mui/icons-material";
-import { use } from "react";
-import { useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
+import DoctorCard from "../components/DoctorCard";
+import {
+  clearSelectedDoctor,
+  setFilterSpecialty,
+  setSearch,
+  setSelectedDoctorById,
+} from "../../../store/slices/patientDoctorsSlice";
+import {
+  resetBookingState,
+  setSelectedDate,
+  setSelectedTime,
+  setShowConfirmModal,
+} from "../../../store/slices/patientBookingSlice";
 
 
 export default function DashboardPage() {
-  const doctors = [
-    {
-      id: 1,
-      name: "Dr. Sarah Jenkins",
-      specialty: "Cardiologist",
-      image: "https://i.pravatar.cc/100",
-      availablity: "24 Feb, 10:00 AM",
-      bio: "Dr. Jenkins is a board-certified cardiologist with over 15 years of experience. She specializes in treating heart conditions and improving cardiovascular health.",
-      address: "123 Heart St, Cardio City",
-      email:"sarah.jenkins@medibook.com",
-      phone:"+1 (555) 987-6543",
-      timeSlots: ["09:00 AM", "10:00 AM", "11:30 AM", "02:00 PM", "03:30 PM"],
-    },
-    {
-      id: 2,
-      name: "Dr. Michael Chen",
-      specialty: "Dermatologist",
-      image: "https://i.pravatar.cc/101",
-      availablity: "25 Feb, 09:15 AM",
-      bio: "Dr. Chen is a highly skilled dermatologist with expertise in treating skin conditions such as acne, eczema, and psoriasis. He is dedicated to helping patients achieve healthy skin.",
-      address: "456 Skin Ave, Dermaville",
-      email:"michael.chen@medibook.com",
-      phone:"+1 (555) 123-4567",
-      timeSlots: ["09:15 AM", "10:30 AM", "01:00 PM", "03:00 PM"],
-    },
-  ];
+  const dispatch = useDispatch();
+  const { doctors, search, filterSpecialty, selectedDoctorId } = useSelector(
+    (state) => state.patientDoctors
+  );
+  const { selectedDate, selectedTime, showConfirmModal } = useSelector(
+    (state) => state.patientBooking
+  );
 
  const navigate =useNavigate();
  const handleDoctorClick=(doctor)=>{
   navigate(`/patient/doctor/${doctor.id}`,{state:{doctor}});
  }
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
-  const [search, setSearch] = useState("");
-  const [filterSpecialty, setFilterSpecialty] = useState("All");
+  const selectedDoctor = useMemo(
+    () => doctors.find((doc) => doc.id === selectedDoctorId) || null,
+    [doctors, selectedDoctorId]
+  );
 
-  const [showConfirmModal,setShowConfirmModal] = useState(false)
-
-  const filteredDoctors = doctors.filter((doc) => {
-    const matchesName = doc.name.toLowerCase().includes(search.toLowerCase());
-    const matchesSpecialty = filterSpecialty === "All" || doc.specialty === filterSpecialty;
-    return matchesName && matchesSpecialty;
-  });
+  const filteredDoctors = useMemo(
+    () =>
+      doctors.filter((doc) => {
+        const matchesName = doc.name.toLowerCase().includes(search.toLowerCase());
+        const matchesSpecialty =
+          filterSpecialty === "All" || doc.specialty === filterSpecialty;
+        return matchesName && matchesSpecialty;
+      }),
+    [doctors, search, filterSpecialty]
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f7f8] dark:bg-[#101922] text-slate-800 dark:text-slate-100">
@@ -107,12 +102,12 @@ export default function DashboardPage() {
               type="text"
               placeholder="Search doctors..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => dispatch(setSearch(e.target.value))}
               className="flex-1 border rounded-lg px-3 py-2"
             />
             <select
               value={filterSpecialty}
-              onChange={(e) => setFilterSpecialty(e.target.value)}
+              onChange={(e) => dispatch(setFilterSpecialty(e.target.value))}
               className="border rounded-lg px-3 py-2"
             >
               <option>All</option>
@@ -129,34 +124,16 @@ export default function DashboardPage() {
 
           {/* Doctor Cards */}
           {filteredDoctors.map((doc) => (
-            <div
+            <DoctorCard
               key={doc.id}
-              onClick={() => {
-                handleDoctorClick(doc);
+              doctor={doc}
+              onOpenDoctor={handleDoctorClick}
+              onBook={(doctor) => {
+                dispatch(setSelectedDoctorById(doctor.id));
+                dispatch(setSelectedDate(""));
+                dispatch(setSelectedTime(""));
               }}
-              className="bg-white dark:bg-slate-800 rounded-xl shadow p-5 hover:shadow-lg transition cursor-pointer"
-            >
-              <div className="flex gap-4">
-                <img src={doc.image} className="w-24 h-24 rounded-lg object-cover" />
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg">{doc.name}</h3>
-                  <p className="text-[#137fec] text-sm">{doc.specialty}</p>
-                  <p className="text-sm mt-2 text-slate-500">Address: {doc.address}</p>
-                  <p className="text-sm mt-1 text-slate-400">Availablity: {doc.availablity}</p>
-                  <button
-                    onClick={(e)=> {
-                        e.stopPropagation();
-                      setSelectedDoctor(doc);
-                      setSelectedDate("");
-                      setSelectedTime("");
-                    }}
-                    className="mt-3 text-[#137fec] font-semibold border px-3 py-1 rounded-lg hover:bg-[#137fec] hover:text-white transition"
-                  >
-                    Book Session
-                  </button>
-                </div>
-              </div>
-            </div>
+            />
           ))}
         </div>
 
@@ -169,7 +146,11 @@ export default function DashboardPage() {
                   Book with {selectedDoctor.name}
                 </h2>
                 <button
-                  onClick={() => { setSelectedDoctor(null); setSelectedDate(""); setSelectedTime(""); }}
+                  onClick={() => {
+                    dispatch(clearSelectedDoctor());
+                    dispatch(setSelectedDate(""));
+                    dispatch(setSelectedTime(""));
+                  }}
                   className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
                 >
                   ✕
@@ -181,7 +162,7 @@ export default function DashboardPage() {
                 type="date"
                 className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => dispatch(setSelectedDate(e.target.value))}
               />
 
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Time:</label>
@@ -189,7 +170,7 @@ export default function DashboardPage() {
                 {selectedDoctor.timeSlots.map((time) => (
                   <button
                     key={time}
-                    onClick={() => setSelectedTime(time)}
+                    onClick={() => dispatch(setSelectedTime(time))}
                     className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
                       selectedTime === time
                         ? "bg-[#137fec] text-white"
@@ -208,7 +189,7 @@ export default function DashboardPage() {
                     ? "bg-[#137fec] text-white hover:bg-[#137fec]/90"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 }`}
-                onClick={() => setShowConfirmModal(true)}
+                onClick={() => dispatch(setShowConfirmModal(true))}
               >
                 Confirm Appointment
               </button>
@@ -217,7 +198,18 @@ export default function DashboardPage() {
         )}
 
       </main>
-            {showConfirmModal && (<BookConfirmModal doctor={selectedDoctor} setSelectedDate={setSelectedDate} setSelectedTime={setSelectedTime} setShowConfirmModal={setShowConfirmModal} selectedDate={selectedDate} selectedTime={selectedTime} />)}
+            {showConfirmModal && selectedDoctor && (
+              <BookConfirmModal
+                doctor={selectedDoctor}
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                onDone={() => {
+                  dispatch(setShowConfirmModal(false));
+                  dispatch(resetBookingState());
+                  dispatch(clearSelectedDoctor());
+                }}
+              />
+            )}
 
       
 

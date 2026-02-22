@@ -1,27 +1,49 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  cancelAppointment,
+  fetchMyAppointments,
+  rescheduleAppointment,
+} from '../../../store/slices/appointmentSlice';
+import { useEffect } from 'react';
+import AppointmentList from '../components/AppointmentList';
 
 export default function MyAppointmentsPage() {
-  const appointments = [
-    {
-      id: 1,
-      doctorName: "Dr. Sarah Jenkins",
-      specialty: "Cardiologist",
-      date: "24 Feb, 10:00 AM",
-      status: "Confirmed",
-      image: "https://i.pravatar.cc/100",
-    },
-    {
-      id: 2,
-      doctorName: "Dr. Michael Chen",
-      specialty: "Dermatologist",
-      date: "25 Feb, 01:00 PM",
-      status: "Pending",
-      image: "https://i.pravatar.cc/101",
-    },
-  ];
+  const dispatch = useDispatch();
+  const { appointments, loading } = useSelector((state) => state.appointments);
+
+  useEffect(() => {
+    dispatch(fetchMyAppointments());
+  }, [dispatch]);
 
    const navigate =useNavigate();
+
+  const mappedAppointments = appointments.map((item) => ({
+    id: item._id,
+    doctorName: item?.doctorId?.userId?.name || 'Doctor',
+    specialty: item?.doctorId?.specialtyId?.name || 'Specialty',
+    date: `${new Date(item.date).toLocaleDateString()} ${item.startTime} - ${item.endTime}`,
+    status: String(item.status || '').replace(/^./, (c) => c.toUpperCase()),
+    image: 'https://i.pravatar.cc/100',
+  }));
+
+  const handleCancel = async (id) => {
+    await dispatch(cancelAppointment(id));
+    dispatch(fetchMyAppointments());
+  };
+
+  const handleReschedule = async (id) => {
+    const date = window.prompt('Enter new date (YYYY-MM-DD):');
+    if (!date) return;
+    const startTime = window.prompt('Enter new start time (HH:mm):');
+    if (!startTime) return;
+    const endTime = window.prompt('Enter new end time (HH:mm):');
+    if (!endTime) return;
+
+    await dispatch(rescheduleAppointment({ id, payload: { date, startTime, endTime } }));
+    dispatch(fetchMyAppointments());
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f7f8] dark:bg-[#101922] text-slate-800 dark:text-slate-100">
 
@@ -66,34 +88,14 @@ export default function MyAppointmentsPage() {
         <h1 className="text-2xl font-bold mb-2">My Appointments</h1>
         <p className="text-slate-500 mb-6">Here are all your booked appointments.</p>
 
+        {loading && <p className="mb-4">Loading appointments...</p>}
+
         {/* Appointments List */}
-        <div className="grid md:grid-cols-2 gap-6">
-
-          {appointments.map((app) => (
-            <div key={app.id} className="p-5 rounded-xl shadow hover:shadow-lg transition bg-white dark:bg-slate-800 flex gap-4 items-center">
-              <img
-                src={app.image}
-                alt={app.doctorName}
-                className="w-24 h-24 rounded-lg object-cover"
-              />
-              <div className="flex-1">
-                <h3 className="text-lg font-bold">{app.doctorName}</h3>
-                <p className="text-sm text-[#137fec]">{app.specialty}</p>
-                <p className="mt-1 text-slate-500">{app.date}</p>
-                <span className={`mt-2 inline-block px-3 py-1 rounded-lg text-xs font-semibold ${
-                  app.status === "Confirmed"
-                    ? "bg-green-100 text-green-800"
-                    : app.status === "Pending"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-slate-100 text-slate-800"
-                }`}>
-                  {app.status}
-                </span>
-              </div>
-            </div>
-          ))}
-
-        </div>
+        <AppointmentList
+          appointments={mappedAppointments}
+          onCancel={handleCancel}
+          onReschedule={handleReschedule}
+        />
       </main>
     </div>
   );

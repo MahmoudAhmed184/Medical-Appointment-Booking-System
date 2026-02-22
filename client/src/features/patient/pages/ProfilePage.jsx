@@ -1,28 +1,23 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  saveField,
+  setTempValue,
+  startEditField,
+} from "../../../store/slices/patientProfileSlice";
 
 export default function PatientProfile() {
-  const [profile, setProfile] = useState({
-    firstName: "Alex",
-    lastName: "Johnson",
-    dob: "1988-05-12",
-    gender: "Male",
-    email: "alex.johnson@example.com",
-    phone: "+1 (555) 123-4567",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAi4QC2t-RpKpqzFlMoeaK2ad5yaX3RAw6bdlg_ztmKFpFzOWwLg6N0yseV9ENOvCcYNMS7zrF2OWBJ-KhLlu1fUlXtyB4M4p19T80sTlKSejetxoD1Igc5m082lHDPqB-AJYwDHuGvsWrFhLHBapP6XJ-lFD7tzYTMU9NPpGJQDLpQgp-pEVU4rIj2fAMf6yZvBDHTeLmXS0eySF-56kcoP_ZhwFh6eeo1SodZl6AL7SGB8X-rWCtDMZ9bstzQM8S8jxKZjP11Ouw",
-  });
-
-  const [editingField, setEditingField] = useState(null);
-  const [tempValue, setTempValue] = useState("");
+  const dispatch = useDispatch();
+  const { profile, editingField, tempValue } = useSelector(
+    (state) => state.patientProfile
+  );
 
   const handleEdit = (field) => {
-    setEditingField(field);
-    setTempValue(profile[field]);
+    dispatch(startEditField(field));
   };
 
   const handleSave = (field) => {
-    setProfile({ ...profile, [field]: tempValue });
-    setEditingField(null);
+    dispatch(saveField(field));
   };
 
    const navigate =useNavigate();
@@ -86,16 +81,16 @@ export default function PatientProfile() {
                 {editingField === field ? (
                   <div className="flex gap-2 mt-1">
                     {field === "gender" ? (
-                      <select value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white">
+                      <select value={tempValue} onChange={(e) => dispatch(setTempValue(e.target.value))} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white">
                         <option>Male</option>
                         <option>Female</option>
                         <option>Non-binary</option>
                         <option>Prefer not to say</option>
                       </select>
                     ) : field === "dob" ? (
-                      <input type="date" value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
+                      <input type="date" value={tempValue} onChange={(e) => dispatch(setTempValue(e.target.value))} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
                     ) : (
-                      <input value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
+                      <input value={tempValue} onChange={(e) => dispatch(setTempValue(e.target.value))} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
                     )}
                     <button onClick={() => handleSave(field)} className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">Save</button>
                   </div>

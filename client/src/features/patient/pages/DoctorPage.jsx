@@ -1,21 +1,38 @@
-import { useState } from "react";
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
+import {
+  resetBookingState,
+  setSelectedDate,
+  setSelectedTime,
+  setShowConfirmModal,
+  setShowSlots,
+} from "../../../store/slices/patientBookingSlice";
 
 export default function DoctorPage() {
-
-
-  const [showSlots, setShowSlots] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
-  const [showConfirmModal,setShowConfirmModal] = useState(false)
+  const dispatch = useDispatch();
+  const { doctorId } = useParams();
+  const { doctors } = useSelector((state) => state.patientDoctors);
+  const { showSlots, selectedDate, selectedTime, showConfirmModal } = useSelector(
+    (state) => state.patientBooking
+  );
 
    const location = useLocation();
-   const doctor = location.state?.doctor;
+   const doctor = location.state?.doctor || doctors.find((d) => String(d.id) === String(doctorId));
    const navigate =useNavigate();
+
+   if (!doctor) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Doctor not found.</p>
+      </div>
+    );
+   }
+
   return (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-display flex flex-col">
 
@@ -71,7 +88,7 @@ export default function DoctorPage() {
             {/* Book Button */}
             <button
               className="mt-6 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition-all"
-              onClick={() => setShowSlots(!showSlots)}
+              onClick={() => dispatch(setShowSlots(!showSlots))}
             >
               Book Appointment
             </button>
@@ -87,9 +104,9 @@ export default function DoctorPage() {
                 </h2>
                 <button
                   onClick={() => {
-                    setShowSlots(false);
-                    setSelectedDate("");
-                    setSelectedTime("");
+                    dispatch(setShowSlots(false));
+                    dispatch(setSelectedDate(""));
+                    dispatch(setSelectedTime(""));
                   }}
                   className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
                 >
@@ -102,7 +119,7 @@ export default function DoctorPage() {
                 type="date"
                 className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => dispatch(setSelectedDate(e.target.value))}
               />
 
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Time:</label>
@@ -110,7 +127,7 @@ export default function DoctorPage() {
                 {doctor.timeSlots.map((time) => (
                   <button
                     key={time}
-                    onClick={() => setSelectedTime(time)}
+                    onClick={() => dispatch(setSelectedTime(time))}
                     className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
                       selectedTime === time
                         ? "bg-[#137fec] text-white"
@@ -130,8 +147,8 @@ export default function DoctorPage() {
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 }`}
                 onClick={() => {
-                  setShowConfirmModal(true);
-                  setShowSlots(false);
+                  dispatch(setShowConfirmModal(true));
+                  dispatch(setShowSlots(false));
                 }}
               >
                 Confirm Appointment
@@ -141,7 +158,17 @@ export default function DoctorPage() {
 
         </div>
       </main>
-      {showConfirmModal && (<BookConfirmModal doctor={doctor} setSelectedDate={setSelectedDate} setSelectedTime={setSelectedTime} setShowConfirmModal={setShowConfirmModal} selectedDate={selectedDate} selectedTime={selectedTime} />)}
+      {showConfirmModal && (
+        <BookConfirmModal
+          doctor={doctor}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          onDone={() => {
+            dispatch(setShowConfirmModal(false));
+            dispatch(resetBookingState());
+          }}
+        />
+      )}
     </div>
 
     
