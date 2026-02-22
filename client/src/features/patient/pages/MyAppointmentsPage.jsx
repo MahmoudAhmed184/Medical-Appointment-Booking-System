@@ -7,10 +7,11 @@ import {
 } from '../../../store/slices/appointmentSlice';
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentList from '../components/AppointmentList';
-import { getDoctorByIdApi } from '../services/patientApi';
+import { getDoctorByIdApi, getPatientProfileApi } from '../services/patientApi';
 
 const TIME_STEP_MINUTES = 15;
 const MAX_APPOINTMENT_DURATION_MINUTES = 60;
+const PATIENT_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/girl?username=patient';
 
 const toMinutes = (value) => {
   const [hours, minutes] = String(value || '').split(':').map(Number);
@@ -128,6 +129,7 @@ export default function MyAppointmentsPage() {
   const [cancelTargetDoctorName, setCancelTargetDoctorName] = useState('');
   const [cancelError, setCancelError] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [patientNav, setPatientNav] = useState({ name: 'Patient', image: PATIENT_DEFAULT_AVATAR });
 
   const todayDateString = useMemo(() => toLocalDateInputValue(new Date()), []);
   const rescheduleStartOptions = useMemo(
@@ -143,6 +145,24 @@ export default function MyAppointmentsPage() {
     dispatch(fetchMyAppointments());
   }, [dispatch]);
 
+  useEffect(() => {
+    const loadPatientNav = async () => {
+      try {
+        const { data } = await getPatientProfileApi();
+        const patient = data?.patient || data?.data?.patient || data?.data || {};
+        const user = patient?.user || patient?.userId || {};
+        setPatientNav({
+          name: user?.name || 'Patient',
+          image: patient?.image || PATIENT_DEFAULT_AVATAR,
+        });
+      } catch {
+        setPatientNav({ name: 'Patient', image: PATIENT_DEFAULT_AVATAR });
+      }
+    };
+
+    loadPatientNav();
+  }, []);
+
    const navigate =useNavigate();
 
   const mappedAppointments = appointments.map((item) => ({
@@ -152,7 +172,7 @@ export default function MyAppointmentsPage() {
     date: `${new Date(item.date).toLocaleDateString()} ${item.startTime} - ${item.endTime}`,
     status: String(item.status || '').replace(/^./, (c) => c.toUpperCase()),
     rawStatus: String(item.status || ''),
-    image: 'https://i.pravatar.cc/100',
+    image: item?.doctorId?.image || 'https://avatar.iran.liara.run/public/boy?username=doctor',
   }));
 
   const handleCancel = (id) => {
@@ -280,9 +300,9 @@ export default function MyAppointmentsPage() {
 
           {/* PROFILE */}
           <div className="flex items-center gap-2">
-            <span className="font-medium text-slate-800 dark:text-slate-100">Shaza Hamdy</span>
+            <span className="font-medium text-slate-800 dark:text-slate-100">{patientNav.name}</span>
             <img
-              src="https://i.pravatar.cc/40"
+              src={patientNav.image || PATIENT_DEFAULT_AVATAR}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover"
             />

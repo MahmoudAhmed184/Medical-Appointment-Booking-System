@@ -23,7 +23,7 @@ const getProfile = async (req, res) => {
 // ===== UPDATE Profile =====
 const updateProfile = async (req, res) => {
   try {
-    const { phone, dateOfBirth, name, email } = req.body;
+    const { phone, dateOfBirth, name, email, address, image } = req.body;
 
     const patient = await Patient.findOne({ userId: req.user._id });
     if (!patient) return res.status(404).json({ message: "Patient not found" });
@@ -31,6 +31,8 @@ const updateProfile = async (req, res) => {
     // Update patient fields
     if (phone) patient.phone = phone;
     if (dateOfBirth) patient.dateOfBirth = dateOfBirth;
+    if (address !== undefined) patient.address = address;
+    if (image !== undefined) patient.image = image;
 
     await patient.save();
 
@@ -41,7 +43,8 @@ const updateProfile = async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ message: "Profile updated successfully", patient });
+    const updatedPatient = await Patient.findById(patient._id).populate("user");
+    res.status(200).json({ message: "Profile updated successfully", patient: updatedPatient });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

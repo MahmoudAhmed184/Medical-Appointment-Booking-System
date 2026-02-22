@@ -28,6 +28,17 @@ const patientSchema = new mongoose.Schema(
                 message: 'Date of birth must be in the past',
             },
         },
+        address: {
+            type: String,
+            trim: true,
+            maxlength: [300, 'Address cannot exceed 300 characters'],
+            default: '',
+        },
+        image: {
+            type: String,
+            trim: true,
+            default: 'https://avatar.iran.liara.run/public/girl?username=patient',
+        },
     },
     {
         timestamps: true,

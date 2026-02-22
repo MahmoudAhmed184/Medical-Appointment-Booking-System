@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
 import DoctorCard from "../components/DoctorCard";
-import { bookAppointmentApi } from "../services/patientApi";
+import { bookAppointmentApi, getPatientProfileApi } from "../services/patientApi";
 import { fetchMyAppointments } from "../../../store/slices/appointmentSlice";
 import {
   clearSelectedDoctor,
@@ -24,6 +24,7 @@ import {
 
 const TIME_STEP_MINUTES = 15;
 const MAX_APPOINTMENT_DURATION_MINUTES = 60;
+const PATIENT_DEFAULT_AVATAR = "https://avatar.iran.liara.run/public/girl?username=patient";
 
 const toMinutes = (value) => {
   const [hours, minutes] = String(value || "").split(":").map(Number);
@@ -107,6 +108,7 @@ export default function DashboardPage() {
   );
   const [bookingError, setBookingError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [patientNav, setPatientNav] = useState({ name: "Patient", image: PATIENT_DEFAULT_AVATAR });
 
  const navigate =useNavigate();
  const handleDoctorClick=(doctor)=>{
@@ -116,6 +118,24 @@ export default function DashboardPage() {
   useEffect(() => {
     dispatch(fetchDoctors());
   }, [dispatch]);
+
+  useEffect(() => {
+    const loadPatientNav = async () => {
+      try {
+        const { data } = await getPatientProfileApi();
+        const patient = data?.patient || data?.data?.patient || data?.data || {};
+        const user = patient?.user || patient?.userId || {};
+        setPatientNav({
+          name: user?.name || "Patient",
+          image: patient?.image || PATIENT_DEFAULT_AVATAR,
+        });
+      } catch {
+        setPatientNav({ name: "Patient", image: PATIENT_DEFAULT_AVATAR });
+      }
+    };
+
+    loadPatientNav();
+  }, []);
 
   const selectedDoctor = useMemo(
     () => doctors.find((doc) => doc.id === selectedDoctorId) || null,
@@ -206,9 +226,9 @@ export default function DashboardPage() {
     {/* PROFILE - Right */}
     <div className="flex items-center gap-2">
 
-      <span className="font-medium text-slate-800 dark:text-slate-100">Shaza Hamdy</span>
+      <span className="font-medium text-slate-800 dark:text-slate-100">{patientNav.name}</span>
        <img
-        src="https://i.pravatar.cc/40"
+        src={patientNav.image || PATIENT_DEFAULT_AVATAR}
         alt="Profile"
         className="w-10 h-10 rounded-full object-cover"
       />

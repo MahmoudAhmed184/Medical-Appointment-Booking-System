@@ -5,6 +5,7 @@ import { ROLES } from '../utils/constants.js';
 import {
     getAllDoctors,
     getDoctorById,
+    getProfile,
     updateProfile,
     getAvailability,
     setAvailability,
@@ -15,19 +16,8 @@ import {
 
 const router = express.Router();
 
-// --- Public routes ---
-// GET /api/doctors
-router.get('/', getAllDoctors);
-
-// GET /api/doctors/:id
-router.get('/:id', getDoctorById);
-
-// --- Patient routes ---
-// GET /api/doctors/:id/available-slots?date=YYYY-MM-DD
-router.get('/:id/available-slots', auth, authorize(ROLES.PATIENT), getAvailableSlots);
-
 // --- Doctor-only routes ---
-// PUT  /api/doctors/profile
+router.get('/profile', auth, authorize(ROLES.DOCTOR), getProfile);
 router.put('/profile', auth, authorize(ROLES.DOCTOR), updateProfile);
 
 // GET  /api/doctors/availability
@@ -41,5 +31,16 @@ router.put('/availability/:slotId', auth, authorize(ROLES.DOCTOR), updateAvailab
 
 // DELETE /api/doctors/availability/:slotId
 router.delete('/availability/:slotId', auth, authorize(ROLES.DOCTOR), deleteAvailabilitySlot);
+
+// --- Public routes ---
+// GET /api/doctors
+router.get('/', getAllDoctors);
+
+// GET /api/doctors/:id
+router.get('/:id', getDoctorById);
+
+// --- Patient routes ---
+// GET /api/doctors/:id/available-slots?date=YYYY-MM-DD
+router.get('/:id/available-slots', auth, authorize(ROLES.PATIENT), getAvailableSlots);
 
 export default router;

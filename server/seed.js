@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './src/config/db.js';
 import User from './src/models/User.js';
 import Doctor from './src/models/Doctor.js';
@@ -8,6 +10,10 @@ import Availability from './src/models/Availability.js';
 import Appointment from './src/models/Appointment.js';
 import bcrypt from 'bcryptjs';
 import { ROLES, APPOINTMENT_STATUS } from './src/utils/constants.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const seedDatabase = async () => {
     try {
@@ -82,18 +88,24 @@ const seedDatabase = async () => {
                 specialtyId: specialties[0]._id, // Cardiology
                 bio: 'Experienced cardiologist with 15 years of practice',
                 phone: '+201234567890',
+                address: 'Cairo Medical Tower, Nasr City, Cairo',
+                image: 'https://avatar.iran.liara.run/public/boy?username=ahmed-hassan',
             },
             {
                 userId: doctorUsers[1]._id,
                 specialtyId: specialties[1]._id, // Dermatology
                 bio: 'Specialist in skin conditions and cosmetic dermatology',
                 phone: '+201234567891',
+                address: 'Alex Clinic Center, Smouha, Alexandria',
+                image: 'https://avatar.iran.liara.run/public/girl?username=fatima-ali',
             },
             {
                 userId: doctorUsers[2]._id,
                 specialtyId: specialties[2]._id, // Pediatrics
                 bio: 'Caring for children\'s health and development',
                 phone: '+201234567892',
+                address: 'Children Health Hub, Dokki, Giza',
+                image: 'https://avatar.iran.liara.run/public/boy?username=mohamed-salah',
             },
         ]);
         console.log(`Created ${doctors.length} doctors`);
@@ -136,16 +148,22 @@ const seedDatabase = async () => {
                 userId: patientUsers[0]._id,
                 phone: '+201112223333',
                 dateOfBirth: new Date('1990-05-15'),
+                address: '10 El-Nozha St, Heliopolis, Cairo',
+                image: 'https://avatar.iran.liara.run/public/girl?username=sara-ibrahim',
             },
             {
                 userId: patientUsers[1]._id,
                 phone: '+201112223334',
                 dateOfBirth: new Date('1985-08-22'),
+                address: '22 Corniche Rd, Sidi Gaber, Alexandria',
+                image: 'https://avatar.iran.liara.run/public/boy?username=omar-khaled',
             },
             {
                 userId: patientUsers[2]._id,
                 phone: '+201112223335',
                 dateOfBirth: new Date('2015-03-10'),
+                address: '5 Tahrir Sq, Dokki, Giza',
+                image: 'https://avatar.iran.liara.run/public/girl?username=layla-ahmed',
             },
         ]);
         console.log(`Created ${patients.length} patients`);

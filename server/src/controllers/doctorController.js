@@ -3,6 +3,8 @@ import Doctor from '../models/Doctor.js';
 import User from '../models/User.js';
 import Availability from '../models/Availability.js';
 
+const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
+
 const formatDoctor = (doctorDoc, availability = []) => {
     const doctor = doctorDoc?.toObject ? doctorDoc.toObject() : doctorDoc;
     return {
@@ -12,9 +14,38 @@ const formatDoctor = (doctorDoc, availability = []) => {
         bio: doctor?.bio || '',
         phone: doctor?.phone || '',
         address: doctor?.address || '',
-        image: doctor?.image || '',
+        image: doctor?.image || DOCTOR_DEFAULT_AVATAR,
         availability,
     };
+};
+
+// GET /api/doctors/profile
+const getProfile = async (req, res) => {
+    try {
+        const doctor = await Doctor.findOne({ userId: req.user._id })
+            .populate('userId', 'name email')
+            .populate('specialtyId', 'name description');
+
+        if (!doctor) {
+            return res.status(404).json({ message: 'Doctor profile not found' });
+        }
+
+        const availability = await Availability.find({ doctorId: doctor._id })
+            .select('dayOfWeek startTime endTime')
+            .sort({ dayOfWeek: 1, startTime: 1 });
+
+        const normalizedAvailability = availability.map((row) => ({
+            dayOfWeek: row.dayOfWeek,
+            startTime: row.startTime,
+            endTime: row.endTime,
+        }));
+
+        return res.status(200).json({
+            doctor: formatDoctor(doctor, normalizedAvailability),
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 };
 
 // GET /api/doctors
@@ -90,7 +121,7 @@ const getDoctorById = async (req, res) => {
 // PUT /api/doctors/profile
 const updateProfile = async (req, res) => {
     try {
-        const { name, email, phone, bio } = req.body;
+        const { name, email, phone, bio, address, image } = req.body;
 
         const doctor = await Doctor.findOne({ userId: req.user._id });
         if (!doctor) {
@@ -99,6 +130,8 @@ const updateProfile = async (req, res) => {
 
         if (phone !== undefined) doctor.phone = phone;
         if (bio !== undefined) doctor.bio = bio;
+        if (address !== undefined) doctor.address = address;
+        if (image !== undefined) doctor.image = image;
         await doctor.save();
 
         const user = await User.findById(req.user._id);
@@ -163,6 +196,7 @@ const getAvailableSlots = (req, res) => { };
 export {
     getAllDoctors,
     getDoctorById,
+    getProfile,
     updateProfile,
     getAvailability,
     setAvailability,

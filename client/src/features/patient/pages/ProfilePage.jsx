@@ -5,13 +5,26 @@ import {
   updatePatientProfileApi,
 } from "../services/patientApi";
 
+const PATIENT_DEFAULT_AVATAR = "https://avatar.iran.liara.run/public/girl?username=patient";
+
+const toLocalDateInputValue = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function PatientProfile() {
   const [profile, setProfile] = useState({
     name: "",
     email: "",
     phone: "",
     dob: "",
-    image: "https://i.pravatar.cc/120",
+    address: "",
+    image: PATIENT_DEFAULT_AVATAR,
   });
   const [editingField, setEditingField] = useState(null);
   const [tempValue, setTempValue] = useState("");
@@ -36,10 +49,9 @@ export default function PatientProfile() {
         name: user?.name || "",
         email: user?.email || "",
         phone: patient?.phone || "",
-        dob: patient?.dateOfBirth
-          ? new Date(patient.dateOfBirth).toISOString().slice(0, 10)
-          : "",
-        image: "https://i.pravatar.cc/120",
+        dob: toLocalDateInputValue(patient?.dateOfBirth),
+        address: patient?.address || "",
+        image: patient?.image || PATIENT_DEFAULT_AVATAR,
       });
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load profile");
@@ -58,6 +70,8 @@ export default function PatientProfile() {
       { key: "email", label: "Email" },
       { key: "phone", label: "Phone" },
       { key: "dob", label: "Date of Birth" },
+      { key: "address", label: "Address" },
+      { key: "image", label: "Image URL" },
     ],
     []
   );
@@ -75,6 +89,8 @@ export default function PatientProfile() {
         email: nextProfile.email,
         phone: nextProfile.phone,
         dateOfBirth: nextProfile.dob,
+        address: nextProfile.address,
+        image: nextProfile.image,
       });
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to update profile");
@@ -116,9 +132,9 @@ export default function PatientProfile() {
     {/* PROFILE - Right */}
     <div className="flex items-center gap-2">
 
-      <span className="font-medium text-slate-800 dark:text-slate-100">Shaza Hamdy</span>
+      <span className="font-medium text-slate-800 dark:text-slate-100">{profile.name || 'Patient'}</span>
        <img
-        src="https://i.pravatar.cc/40"
+        src={profile.image || PATIENT_DEFAULT_AVATAR}
         alt="Profile"
         className="w-10 h-10 rounded-full object-cover"
       />
@@ -135,8 +151,8 @@ export default function PatientProfile() {
         {/* Profile Card */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-6 flex flex-col items-center gap-6">
           <div className="relative">
-            <img src={profile.image} className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md" />
-            <button className="absolute bottom-0 right-0 bg-white dark:bg-slate-700 p-1.5 rounded-full shadow border hover:text-blue-500 transition">
+            <img src={profile.image || PATIENT_DEFAULT_AVATAR} className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md" />
+            <button onClick={() => handleEdit("image")} className="absolute bottom-0 right-0 bg-white dark:bg-slate-700 p-1.5 rounded-full shadow border hover:text-blue-500 transition">
               <span className="material-icons text-sm">edit</span>
             </button>
           </div>

@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getDoctorsApi } from '../../features/patient/services/patientApi';
 
+const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
+
 const normalizeAvailability = (availability) =>
     Array.from(
         new Map(
@@ -33,7 +35,7 @@ const mapDoctor = (doctor) => ({
     id: doctor?._id || doctor?.id,
     name: doctor?.userId?.name || doctor?.name || 'Doctor',
     specialty: doctor?.specialtyId?.name || doctor?.specialty || 'Specialty',
-    image: doctor?.image || 'https://i.pravatar.cc/100',
+    image: doctor?.image || DOCTOR_DEFAULT_AVATAR,
     availablity: doctor?.availabilityText || 'Availability not set',
     bio: doctor?.bio || 'No bio available.',
     address: doctor?.address || 'Address not available',

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
-import { bookAppointmentApi, getDoctorByIdApi } from "../services/patientApi";
+import { bookAppointmentApi, getDoctorByIdApi, getPatientProfileApi } from "../services/patientApi";
 import { fetchMyAppointments } from "../../../store/slices/appointmentSlice";
 import {
   resetBookingState,
@@ -21,6 +21,8 @@ import {
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TIME_STEP_MINUTES = 15;
 const MAX_APPOINTMENT_DURATION_MINUTES = 60;
+const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
+const PATIENT_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/girl?username=patient';
 
 const toMinutes = (value) => {
   const [hours, minutes] = String(value || '').split(':').map(Number);
@@ -130,6 +132,7 @@ export default function DoctorPage() {
   const [error, setError] = useState('');
   const [bookingError, setBookingError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [patientNav, setPatientNav] = useState({ name: 'Patient', image: PATIENT_DEFAULT_AVATAR });
 
   const navigate = useNavigate();
 
@@ -151,7 +154,7 @@ export default function DoctorPage() {
           id: rawDoctor?._id,
           name: rawDoctor?.userId?.name || rawDoctor?.name || 'Doctor',
           specialty: rawDoctor?.specialtyId?.name || rawDoctor?.specialty || 'Specialty',
-          image: rawDoctor?.image || 'https://i.pravatar.cc/100',
+          image: rawDoctor?.image || DOCTOR_DEFAULT_AVATAR,
           availablity: rawDoctor?.availabilityText || 'Availability not set',
           bio: rawDoctor?.bio || 'No bio available.',
           address: rawDoctor?.address || 'Address not available',
@@ -169,6 +172,24 @@ export default function DoctorPage() {
 
     if (doctorId) loadDoctor();
   }, [doctorId]);
+
+  useEffect(() => {
+    const loadPatientNav = async () => {
+      try {
+        const { data } = await getPatientProfileApi();
+        const patient = data?.patient || data?.data?.patient || data?.data || {};
+        const user = patient?.user || patient?.userId || {};
+        setPatientNav({
+          name: user?.name || 'Patient',
+          image: patient?.image || PATIENT_DEFAULT_AVATAR,
+        });
+      } catch {
+        setPatientNav({ name: 'Patient', image: PATIENT_DEFAULT_AVATAR });
+      }
+    };
+
+    loadPatientNav();
+  }, []);
 
   const safeTimeSlots = useMemo(() => doctor?.timeSlots || [], [doctor]);
   const availability = useMemo(() => doctor?.availability || [], [doctor]);
@@ -256,8 +277,8 @@ export default function DoctorPage() {
             className="hover:text-[#137fec] cursor-pointer">Profile</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-medium text-slate-800 dark:text-slate-100">Shaza Hamdy</span>
-            <img src="https://i.pravatar.cc/40" alt="Profile" className="w-10 h-10 rounded-full object-cover" />
+            <span className="font-medium text-slate-800 dark:text-slate-100">{patientNav.name}</span>
+            <img src={patientNav.image || PATIENT_DEFAULT_AVATAR} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
           </div>
         </div>
       </nav>

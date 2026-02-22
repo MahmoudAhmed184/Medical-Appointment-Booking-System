@@ -27,6 +27,17 @@ const doctorSchema = new mongoose.Schema(
                 'Please provide a valid phone number',
             ],
         },
+        address: {
+            type: String,
+            trim: true,
+            maxlength: [300, 'Address cannot exceed 300 characters'],
+            default: '',
+        },
+        image: {
+            type: String,
+            trim: true,
+            default: 'https://avatar.iran.liara.run/public/boy?username=doctor',
+        },
     },
     {
         timestamps: true,
