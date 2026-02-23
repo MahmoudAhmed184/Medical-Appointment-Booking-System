@@ -6,6 +6,7 @@ import {
 } from "../services/patientApi";
 
 const PATIENT_DEFAULT_AVATAR = "https://avatar.iran.liara.run/public/girl?username=patient";
+const PHONE_REGEX = /^01\d{9}$/;
 
 const toLocalDateInputValue = (value) => {
   if (!value) return "";
@@ -15,6 +16,31 @@ const toLocalDateInputValue = (value) => {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+const getApiErrorMessage = (err) =>
+  err?.response?.data?.error?.message ||
+  err?.response?.data?.message ||
+  "Failed to update profile";
+
+const hasApiFieldErrors = (err) =>
+  Array.isArray(err?.response?.data?.error?.details) &&
+  err.response.data.error.details.length > 0;
+
+const getApiFieldErrors = (err) => {
+  const fieldMap = {
+    dateOfBirth: "dob",
+  };
+  const details = err?.response?.data?.error?.details || [];
+  if (!Array.isArray(details)) return {};
+
+  return details.reduce((acc, item) => {
+    const rawField = String(item?.field || "");
+    const field = fieldMap[rawField] || rawField;
+    if (!field) return acc;
+    acc[field] = item?.message || "Invalid value";
+    return acc;
+  }, {});
 };
 
 export default function PatientProfile() {
@@ -30,17 +56,25 @@ export default function PatientProfile() {
   const [tempValue, setTempValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
   const handleEdit = (field) => {
     setEditingField(field);
     setTempValue(profile[field] ?? "");
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
   const loadProfile = async () => {
     try {
       setLoading(true);
       setError("");
+      setFieldErrors({});
       const { data } = await getPatientProfileApi();
       const patient = data?.patient || data?.data?.patient || data?.data || null;
       const user = patient?.user || patient?.userId || {};
@@ -78,24 +112,35 @@ export default function PatientProfile() {
 
   const handleSave = async (field) => {
     const nextProfile = { ...profile, [field]: tempValue };
-    setProfile(nextProfile);
-    setEditingField(null);
+    setFieldErrors({});
+
+    if (field === "phone" && tempValue && !PHONE_REGEX.test(tempValue.trim())) {
+      setError("");
+      setFieldErrors({ phone: "Please provide a valid phone number" });
+      return;
+    }
 
     try {
       setSaving(true);
       setError("");
+      const payloadField = field === "dob" ? "dateOfBirth" : field;
       await updatePatientProfileApi({
-        name: nextProfile.name,
-        email: nextProfile.email,
-        phone: nextProfile.phone,
-        dateOfBirth: nextProfile.dob,
-        address: nextProfile.address,
-        image: nextProfile.image,
+        [payloadField]: tempValue,
       });
+      setProfile(nextProfile);
+      setEditingField(null);
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to update profile");
-      // rollback by refetching backend state
-      await loadProfile();
+      if (hasApiFieldErrors(err)) {
+        setError("");
+      } else {
+        setError(getApiErrorMessage(err));
+      }
+      const parsedFieldErrors = getApiFieldErrors(err);
+      if (Object.keys(parsedFieldErrors).length > 0) {
+        setFieldErrors(parsedFieldErrors);
+      } else {
+        setFieldErrors({ [field]: getApiErrorMessage(err) });
+      }
     } finally {
       setSaving(false);
     }
@@ -163,13 +208,18 @@ export default function PatientProfile() {
               <div key={key}>
                 <label className="text-sm text-slate-500 capitalize">{label}</label>
                 {editingField === key ? (
-                  <div className="flex gap-2 mt-1">
-                    {key === "dob" ? (
-                      <input type="date" value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
-                    ) : (
-                      <input value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
+                  <div className="mt-1">
+                    <div className="flex gap-2">
+                      {key === "dob" ? (
+                        <input type="date" value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
+                      ) : (
+                        <input value={tempValue} onChange={(e) => setTempValue(e.target.value)} className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white" />
+                      )}
+                      <button onClick={() => handleSave(key)} className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">Save</button>
+                    </div>
+                    {fieldErrors[key] && (
+                      <p className="text-xs text-red-600 mt-1">{fieldErrors[key]}</p>
                     )}
-                    <button onClick={() => handleSave(key)} className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">Save</button>
                   </div>
                 ) : (
                   <p className="mt-1 text-lg cursor-pointer" onClick={() => handleEdit(key)}>

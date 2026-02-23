@@ -3,6 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { getDoctorProfileApi, updateDoctorProfileApi } from '../services/doctorApi';
 
 const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
+const PHONE_REGEX = /^01\d{9}$/;
+
+const getApiErrorMessage = (err) =>
+  err?.response?.data?.error?.message ||
+  err?.response?.data?.message ||
+  'Failed to update doctor profile';
+
+const hasApiFieldErrors = (err) =>
+  Array.isArray(err?.response?.data?.error?.details) &&
+  err.response.data.error.details.length > 0;
+
+const getApiFieldErrors = (err) => {
+  const details = err?.response?.data?.error?.details || [];
+  if (!Array.isArray(details)) return {};
+
+  return details.reduce((acc, item) => {
+    const field = String(item?.field || '');
+    if (!field) return acc;
+    acc[field] = item?.message || 'Invalid value';
+    return acc;
+  }, {});
+};
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState({
@@ -18,12 +40,14 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
 
   const loadProfile = async () => {
     try {
       setLoading(true);
       setError('');
+      setFieldErrors({});
       const { data } = await getDoctorProfileApi();
       const doctor = data?.doctor || data?.data?.doctor || data?.data || null;
       const user = doctor?.userId || {};
@@ -62,27 +86,44 @@ const ProfilePage = () => {
   const handleEdit = (field) => {
     setEditingField(field);
     setTempValue(profile[field] ?? '');
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
   const handleSave = async (field) => {
     const nextProfile = { ...profile, [field]: tempValue };
-    setProfile(nextProfile);
-    setEditingField(null);
+    setFieldErrors({});
+
+    if (field === 'phone' && tempValue && !PHONE_REGEX.test(tempValue.trim())) {
+      setError('');
+      setFieldErrors({ phone: 'Please provide a valid phone number' });
+      return;
+    }
 
     try {
       setSaving(true);
       setError('');
       await updateDoctorProfileApi({
-        name: nextProfile.name,
-        email: nextProfile.email,
-        phone: nextProfile.phone,
-        bio: nextProfile.bio,
-        address: nextProfile.address,
-        image: nextProfile.image,
+        [field]: tempValue,
       });
+      setProfile(nextProfile);
+      setEditingField(null);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to update doctor profile');
-      await loadProfile();
+      if (hasApiFieldErrors(err)) {
+        setError('');
+      } else {
+        setError(getApiErrorMessage(err));
+      }
+      const parsedFieldErrors = getApiFieldErrors(err);
+      if (Object.keys(parsedFieldErrors).length > 0) {
+        setFieldErrors(parsedFieldErrors);
+      } else {
+        setFieldErrors({ [field]: getApiErrorMessage(err) });
+      }
     } finally {
       setSaving(false);
     }
@@ -132,22 +173,27 @@ const ProfilePage = () => {
               <div key={key}>
                 <label className="text-sm text-slate-500 capitalize">{label}</label>
                 {editingField === key ? (
-                  <div className="flex gap-2 mt-1">
-                    {key === 'bio' ? (
-                      <textarea
-                        value={tempValue}
-                        onChange={(e) => setTempValue(e.target.value)}
-                        className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
-                        rows={3}
-                      />
-                    ) : (
-                      <input
-                        value={tempValue}
-                        onChange={(e) => setTempValue(e.target.value)}
-                        className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
-                      />
+                  <div className="mt-1">
+                    <div className="flex gap-2">
+                      {key === 'bio' ? (
+                        <textarea
+                          value={tempValue}
+                          onChange={(e) => setTempValue(e.target.value)}
+                          className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
+                          rows={3}
+                        />
+                      ) : (
+                        <input
+                          value={tempValue}
+                          onChange={(e) => setTempValue(e.target.value)}
+                          className="flex-1 p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
+                        />
+                      )}
+                      <button onClick={() => handleSave(key)} className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">Save</button>
+                    </div>
+                    {fieldErrors[key] && (
+                      <p className="text-xs text-red-600 mt-1">{fieldErrors[key]}</p>
                     )}
-                    <button onClick={() => handleSave(key)} className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">Save</button>
                   </div>
                 ) : (
                   <p className="mt-1 text-lg cursor-pointer" onClick={() => handleEdit(key)}>

@@ -1,7 +1,9 @@
 import express from 'express';
 import auth from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
+import validate from '../middleware/validate.js';
 import { ROLES } from '../utils/constants.js';
+import { updateDoctorProfileSchema } from '../validations/profileValidation.js';
 import {
     getAllDoctors,
     getDoctorById,
@@ -18,7 +20,7 @@ const router = express.Router();
 
 // --- Doctor-only routes ---
 router.get('/profile', auth, authorize(ROLES.DOCTOR), getProfile);
-router.put('/profile', auth, authorize(ROLES.DOCTOR), updateProfile);
+router.put('/profile', auth, authorize(ROLES.DOCTOR), validate(updateDoctorProfileSchema), updateProfile);
 
 // GET  /api/doctors/availability
 router.get('/availability', auth, authorize(ROLES.DOCTOR), getAvailability);

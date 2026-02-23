@@ -4,7 +4,9 @@ const validate = (schema) => {
     return (req, res, next) => {
         const { error } = schema.validate(req.body, {
             abortEarly: false,
-            stripUnknown: true,
+            stripUnknown: false,
+            allowUnknown: false,
+            convert: true,
         });
 
         if (error) {

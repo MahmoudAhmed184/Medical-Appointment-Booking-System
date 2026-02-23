@@ -1,7 +1,9 @@
 import express from 'express';
 import auth from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
+import validate from '../middleware/validate.js';
 import { ROLES } from '../utils/constants.js';
+import { updatePatientProfileSchema } from '../validations/profileValidation.js';
 import {
   getProfile,
   updateProfile,
@@ -17,7 +19,7 @@ const router = express.Router();
 router.use(auth, authorize(ROLES.PATIENT));
 /// ===== Patient Profile =====
 router.get("/profile", getProfile);           // GET profile
-router.put("/profile", updateProfile);        // UPDATE profile
+router.put("/profile", validate(updatePatientProfileSchema), updateProfile);        // UPDATE profile
 
 // ===== Appointments =====
 router.get("/appointments", listAppointments); // GET all appointments of patient
