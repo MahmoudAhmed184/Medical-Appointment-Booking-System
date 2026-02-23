@@ -40,4 +40,33 @@ const sendAppointmentConfirmation = async ({
     return sendEmail(to, subject, html);
 };
 
-export { sendEmail, sendAppointmentConfirmation };
+const sendAppointmentRescheduleConfirmation = async ({
+    to,
+    patientName,
+    doctorName,
+    date,
+    startTime,
+    endTime,
+}) => {
+    const subject = 'Appointment Reschedule Confirmation';
+
+    const html = `
+        <h2>Appointment Rescheduled</h2>
+        <p>Hello ${patientName || 'Patient'},</p>
+        <p>Your appointment has been rescheduled successfully.</p>
+        <ul>
+            <li><strong>Doctor:</strong> ${doctorName || 'N/A'}</li>
+            <li><strong>New Date:</strong> ${date}</li>
+            <li><strong>New Time:</strong> ${startTime} - ${endTime}</li>
+        </ul>
+        <p>Thank you for using our Medical Appointment Booking System.</p>
+    `;
+
+    return sendEmail(to, subject, html);
+};
+
+export {
+    sendEmail,
+    sendAppointmentConfirmation,
+    sendAppointmentRescheduleConfirmation,
+};

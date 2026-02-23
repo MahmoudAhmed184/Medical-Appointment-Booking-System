@@ -4,7 +4,10 @@ import Availability from "../models/Availability.js";
 import Doctor from "../models/Doctor.js";
 import User from "../models/User.js";
 import { isValidObjectId } from "mongoose";
-import { sendAppointmentConfirmation } from "../services/emailService.js";
+import {
+  sendAppointmentConfirmation,
+  sendAppointmentRescheduleConfirmation,
+} from "../services/emailService.js";
 
 const MAX_APPOINTMENT_DURATION_MINUTES = 60;
 
@@ -218,6 +221,23 @@ const rescheduleAppointment = async (req, res) => {
     appointment.endTime = endTime;
     appointment.status = "pending";
     await appointment.save();
+
+    if (req.user?.email) {
+      try {
+        const doctor = await Doctor.findById(appointment.doctorId).populate("userId", "name");
+
+        await sendAppointmentRescheduleConfirmation({
+          to: req.user.email,
+          patientName: req.user.name,
+          doctorName: doctor?.userId?.name,
+          date,
+          startTime,
+          endTime,
+        });
+      } catch (mailError) {
+        console.error("Failed to send appointment reschedule email:", mailError.message);
+      }
+    }
 
     return res.status(200).json({
       message: "Appointment rescheduled successfully",
