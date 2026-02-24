@@ -216,6 +216,16 @@ const rescheduleAppointment = async (req, res) => {
       return res.status(400).json({ message: "This time slot is already booked" });
     }
 
+    // Keep model/index unchanged: if target slot already exists as cancelled,
+    // remove that cancelled document to avoid unique index conflict on save.
+    await Appointment.findOneAndDelete({
+      _id: { $ne: appointment._id },
+      doctorId: appointment.doctorId,
+      date: dayStart,
+      startTime,
+      status: "cancelled",
+    });
+
     appointment.date = dayStart;
     appointment.startTime = startTime;
     appointment.endTime = endTime;
