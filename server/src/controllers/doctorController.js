@@ -1,5 +1,7 @@
 import Doctor from '../models/Doctor.js';
 import Availability from '../models/Availability.js';
+import user from '../models/User.js';        
+import specialty from '../models/Specialty.js'; 
 
 const getAllDoctors = async (req, res) => {
     try {
@@ -196,20 +198,51 @@ const deleteAvailabilitySlot = async (req, res) => {
 };
 
 
+// const getAvailableSlots = async (req, res) => {
+//     try {
+//         const { doctorId, date } = req.body; // date = YYYY-MM-DD
+
+//         const dayOfWeek = new Date(date).getDay();
+
+//         const slots = await Availability.find({ doctorId, dayOfWeek }).sort({ startTime: 1 });
+
+//         res.status(200).json({ success: true, data: slots });
+//     } catch (error) {
+//         res.status(500).json({ success: false, message: error.message });
+//     }
+// };
+
 const getAvailableSlots = async (req, res) => {
     try {
-        const { doctorId, date } = req.query; // date = YYYY-MM-DD
+        const doctorId = req.params.id;
+        const { date } = req.query;
+
+        if (!date) {
+            return res.status(400).json({
+                success: false,
+                message: "Date is required"
+            });
+        }
 
         const dayOfWeek = new Date(date).getDay();
 
-        const slots = await Availability.find({ doctorId, dayOfWeek }).sort({ startTime: 1 });
+        const slots = await Availability.find({
+            doctorId,
+            dayOfWeek
+        }).sort({ startTime: 1 });
 
-        res.status(200).json({ success: true, data: slots });
+        res.status(200).json({
+            success: true,
+            data: slots
+        });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
-
 
 export {
     getAllDoctors,
