@@ -1,4 +1,5 @@
 import catchAsync from '../utils/catchAsync.js';
+import Appointment from '../models/Appointment.js';
 import * as appointmentService from '../services/appointmentService.js';
 
 // TODO: Implement bookAppointment handler
@@ -136,17 +137,17 @@ const rescheduleAppointment = async (req, res) => {
             _id: { $ne: id }
         });
 
-        const toMinutes = (t) => {
+        const toMin = (t) => {
             const [h, m] = t.split(':').map(Number);
             return h * 60 + m;
         };
 
-        const newStart = toMinutes(startTime);
-        const newEnd = toMinutes(endTime);
+        const newStart = toMin(startTime);
+        const newEnd = toMin(endTime);
 
         for (const app of existing) {
-            const existingStart = toMinutes(app.startTime);
-            const existingEnd = toMinutes(app.endTime);
+            const existingStart = toMin(app.startTime);
+            const existingEnd = toMin(app.endTime);
 
             if (newStart < existingEnd && newEnd > existingStart) {
                 return res.status(400).json({
@@ -156,7 +157,7 @@ const rescheduleAppointment = async (req, res) => {
             }
         }
 
-        
+
         appointment.date = selectedDate;
         appointment.startTime = startTime;
         appointment.endTime = endTime;
@@ -198,7 +199,6 @@ const addNotes = async (req, res) => {
 
 export {
     bookAppointment,
-    getMyAppointments,
     getAllAppointments,
     getAppointmentById,
     approveAppointment,
