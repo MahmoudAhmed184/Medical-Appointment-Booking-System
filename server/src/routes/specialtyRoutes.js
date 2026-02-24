@@ -31,16 +31,7 @@ router.post('/', auth, authorize(ROLES.ADMIN), validate(createSpecialtySchema), 
 // PUT    /api/specialties/:id
 router.put('/:id', auth, authorize(ROLES.ADMIN), validate(updateSpecialtySchema), updateSpecialty);
 
-// // DELETE /api/specialties/:id
-// router.delete('/admin/specialties/:id', auth, authorize(ROLES.ADMIN), deleteSpecialty);
-
-// POST   /api/specialties/admin
-router.post('/admin',  createSpecialty);
-
-// // PUT    /api/specialties/:id
-router.put('/:id', updateSpecialty);
-
-// // DELETE /api/specialties/:id
-router.delete('/admin/:id', deleteSpecialty);
+// DELETE /api/specialties/:id
+router.delete('/:id', auth, authorize(ROLES.ADMIN), deleteSpecialty);
 
 export default router;
