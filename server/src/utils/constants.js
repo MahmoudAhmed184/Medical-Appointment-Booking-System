@@ -13,6 +13,7 @@ const APPOINTMENT_STATUS = {
     CONFIRMED: 'confirmed',
     COMPLETED: 'completed',
     CANCELLED: 'cancelled',
+    REJECTED: 'rejected',
 };
 
 const DAYS_OF_WEEK = {

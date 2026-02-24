@@ -52,7 +52,7 @@ const appointmentSchema = new mongoose.Schema(
             required: [true, 'Status is required'],
             enum: {
                 values: Object.values(APPOINTMENT_STATUS),
-                message: 'Status must be pending, confirmed, completed, or cancelled',
+                message: 'Status must be pending, confirmed,rejected,completed, or cancelled',
             },
             default: APPOINTMENT_STATUS.PENDING,
         },
