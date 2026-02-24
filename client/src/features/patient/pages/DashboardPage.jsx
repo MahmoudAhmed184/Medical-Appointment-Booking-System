@@ -265,25 +265,25 @@ export default function DashboardPage() {
           }`}
         >
           {/* Search / Filter */}
-          <div className="flex flex-col md:flex-row gap-4 p-4 rounded-xl shadow bg-white mb-4">
+          <div className="flex flex-col md:flex-row gap-4 p-4 rounded-xl shadow bg-white dark:bg-slate-800 mb-4">
             <input
               type="text"
               placeholder="Search by doctor name..."
               value={search}
               onChange={(e) => dispatch(setSearch(e.target.value))}
-              className="flex-1 border rounded-lg px-3 py-2"
+              className="flex-1 border rounded-lg px-3 py-2 bg-white text-slate-900 border-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
             />
             <input
               type="text"
               placeholder="Search by address..."
               value={addressSearch}
               onChange={(e) => setAddressSearch(e.target.value)}
-              className="flex-1 border rounded-lg px-3 py-2"
+              className="flex-1 border rounded-lg px-3 py-2 bg-white text-slate-900 border-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
             />
             <select
               value={filterSpecialty}
               onChange={(e) => dispatch(setFilterSpecialty(e.target.value))}
-              className="border rounded-lg px-3 py-2"
+              className="border rounded-lg px-3 py-2 bg-white text-slate-900 border-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
             >
               {specialtyOptions.map((specialty) => (
                 <option key={specialty} value={specialty}>

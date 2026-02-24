@@ -363,15 +363,33 @@ const bookAppointment = async (req, res) => {
 
     const normalizedDate = dayStart;
 
-    const appointment = await Appointment.create({
+    // Keep model/index unchanged: if same slot exists but was cancelled,
+    // reuse that document instead of creating a new one (avoids unique index E11000).
+    let appointment = await Appointment.findOne({
       doctorId,
-      patientId: patient._id,
       date: normalizedDate,
       startTime,
-      endTime,
-      reason,
-      status: "pending",
+      status: "cancelled",
     });
+
+    if (appointment) {
+      appointment.patientId = patient._id;
+      appointment.endTime = endTime;
+      appointment.reason = reason;
+      appointment.status = "pending";
+      appointment.notes = undefined;
+      await appointment.save();
+    } else {
+      appointment = await Appointment.create({
+        doctorId,
+        patientId: patient._id,
+        date: normalizedDate,
+        startTime,
+        endTime,
+        reason,
+        status: "pending",
+      });
+    }
 
     if (req.user?.email) {
       try {
