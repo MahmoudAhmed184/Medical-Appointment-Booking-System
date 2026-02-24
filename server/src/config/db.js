@@ -10,7 +10,7 @@ mongoose.connection.on('disconnected', () => {
 });
 
 const connectDB = () => {
-    return mongoose.connect(process.env.MONGO_URI);
+    return mongoose.connect(process.env.MONGODB_URI);
 };
 
 export { connectDB };
