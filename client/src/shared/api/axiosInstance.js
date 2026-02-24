@@ -6,7 +6,27 @@ const axiosInstance = axios.create({
     headers: { 'Content-Type': 'application/json' },
 });
 
-// TODO: Request interceptor — attach JWT token from localStorage
-// TODO: Response interceptor — handle 401 redirect to /login
+axiosInstance.interceptors.request.use((requestConfig) => {
+    const token = localStorage.getItem('token');
+
+    if (token) {
+        requestConfig.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return requestConfig;
+});
+
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error?.response?.status === 401) {
+            // Temporary for patient-module testing until auth frontend is ready.
+            // Do not hard-redirect globally; let pages handle unauthorized UI.
+            error.isUnauthorized = true;
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 export default axiosInstance;

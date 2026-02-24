@@ -1,7 +1,12 @@
 import express from 'express';
 import auth from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
+import validate from '../middleware/validate.js';
 import { ROLES } from '../utils/constants.js';
+import {
+    createSpecialtySchema,
+    updateSpecialtySchema,
+} from '../validations/specialtyValidation.js';
 import {
     getAllSpecialties,
     getSpecialtyById,
@@ -20,11 +25,11 @@ router.get('/', getAllSpecialties);
 router.get('/:id', getSpecialtyById);
 
 // --- Admin-only routes ---
-// // POST   /api/specialties
-// router.post('/admin/specialties', auth, authorize(ROLES.ADMIN), createSpecialty);
+// POST   /api/specialties
+router.post('/', auth, authorize(ROLES.ADMIN), validate(createSpecialtySchema), createSpecialty);
 
-// // PUT    /api/specialties/:id
-// router.put('/:id', auth, authorize(ROLES.ADMIN), updateSpecialty);
+// PUT    /api/specialties/:id
+router.put('/:id', auth, authorize(ROLES.ADMIN), validate(updateSpecialtySchema), updateSpecialty);
 
 // // DELETE /api/specialties/:id
 // router.delete('/admin/specialties/:id', auth, authorize(ROLES.ADMIN), deleteSpecialty);

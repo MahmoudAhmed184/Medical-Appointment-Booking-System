@@ -18,7 +18,7 @@ const appointmentSchema = new mongoose.Schema(
             required: [true, 'Appointment date is required'],
             validate: {
                 validator: function (value) {
-                    // Only validate for new appointments (not updates)
+                    
                     if (this.isNew) {
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);

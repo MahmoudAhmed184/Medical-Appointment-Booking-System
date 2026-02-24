@@ -1,18 +1,29 @@
 import express from 'express';
 import auth from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
+import validate from '../middleware/validate.js';
 import { ROLES } from '../utils/constants.js';
-import { getProfile, updateProfile } from '../controllers/patientController.js';
+import { updatePatientProfileSchema } from '../validations/profileValidation.js';
+import {
+  getProfile,
+  updateProfile,
+  listAppointments,
+  bookAppointment,
+  cancelAppointment,
+  rescheduleAppointment,
+} from '../controllers/patientController.js';
 
 const router = express.Router();
 
 // All routes require patient authentication
 router.use(auth, authorize(ROLES.PATIENT));
+/// ===== Patient Profile =====
+router.get("/profile", getProfile);           // GET profile
+router.put("/profile", validate(updatePatientProfileSchema), updateProfile);        // UPDATE profile
 
-// GET /api/patients/profile
-router.get('/profile', getProfile);
-
-// PUT /api/patients/profile
-router.put('/profile', updateProfile);
-
+// ===== Appointments =====
+router.get("/appointments", listAppointments); // GET all appointments of patient
+router.post("/appointments", bookAppointment); // BOOK a new appointment
+router.patch("/appointments/:id/cancel", cancelAppointment); // CANCEL appointment
+router.patch("/appointments/:id/reschedule", rescheduleAppointment); // RESCHEDULE appointment
 export default router;

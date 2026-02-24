@@ -1,137 +1,28 @@
-import Appointment from '../models/Appointment.js';
-import Availability from '../models/Availability.js';
-import Doctor from '../models/Doctor.js';
-import Patient from '../models/Patient.js';
+import catchAsync from '../utils/catchAsync.js';
+import * as appointmentService from '../services/appointmentService.js';
+
+// TODO: Implement bookAppointment handler
+const bookAppointment = (req, res) => { };
 
 const toMinutes = (time) => {
     const [h, m] = time.split(':').map(Number);
     return h * 60 + m;
 };
 
-const bookAppointment = async (req, res) => {
-    try {
-        const { doctorId, date, startTime, endTime, reason } = req.body;
-        const patientId = req.body.patientId; 
+/**
+ * @desc    Get all appointments (paginated, filtered) — Admin view
+ * @route   GET /api/appointments/all
+ * @access  Admin
+ */
+const getAllAppointments = catchAsync(async (req, res) => {
+    const { appointments, pagination } = await appointmentService.getAllAppointments(req.query);
 
-        const selectedDate = new Date(date);
-        selectedDate.setHours(0, 0, 0, 0);
-        const dayOfWeek = selectedDate.getDay();
-
-        
-        const availability = await Availability.findOne({
-            doctorId,
-            dayOfWeek,
-            startTime: { $lte: startTime },
-            endTime: { $gte: endTime }
-        });
-
-        if (!availability) {
-            return res.status(400).json({
-                success: false,
-                message: 'Selected time is outside doctor availability'
-            });
-        }
-
-        // 2️⃣ منع overlap
-        const existing = await Appointment.find({
-            doctorId,
-            date: selectedDate,
-            status: { $in: ['pending', 'confirmed'] }
-        });
-
-        const newStart = toMinutes(startTime);
-        const newEnd = toMinutes(endTime);
-
-        for (const app of existing) {
-            const existingStart = toMinutes(app.startTime);
-            const existingEnd = toMinutes(app.endTime);
-
-            if (newStart < existingEnd && newEnd > existingStart) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Time overlaps with another appointment'
-                });
-            }
-        }
-
-        const appointment = await Appointment.create({
-            doctorId,
-            patientId,
-            date: selectedDate,
-            startTime,
-            endTime,
-            reason
-        });
-
-        res.status(201).json({ success: true, data: appointment });
-
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-// TODO: Implement getMyAppointments handler for both patients and doctors
-const getMyAppointments = async (req, res) => {
-    try {
-        const id = req.body.id;
-        const role = req.body.role;
-
-        let filter = {};
-
-        if (role === 'patient') {
-            const patient = await Patient.findOne({ id: id });
-            if (!patient)
-                return res.status(404).json({ success: false, message: 'Patient not found' });
-
-            filter = { patientId: patient._id };
-        }
-
-        if (role === 'doctor') {
-            const doctor = await Doctor.findOne({ id: id });
-            if (!doctor)
-                return res.status(404).json({ success: false, message: 'Doctor not found' });
-
-            filter = { doctorId: doctor._id };
-        }
-
-        const appointments = await Appointment.find(filter)
-            .populate({
-                path: 'patient',
-                populate: { path: 'user', select: 'name email phone' }
-            })
-            .populate({
-                path: 'doctor',
-                populate: { path: 'user', select: 'name email phone' }
-            })
-            .sort({ date: -1 });
-
-        res.status(200).json({
-            success: true,
-            data: appointments
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
-
-// TODO: Implement getAllAppointments handler for admin to view all appointments
-const getAllAppointments = async (req, res) => {
-    try {
-        const appointments = await Appointment.find()
-            .populate('patient')
-            .populate('doctor')
-            .sort({ date: -1 });
-
-        res.json({ success: true, data: appointments });
-
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+    res.status(200).json({
+        success: true,
+        data: appointments,
+        pagination,
+    });
+});
 
 // TODO: Implement getAppointmentById handler
 const getAppointmentById = async (req, res) => {

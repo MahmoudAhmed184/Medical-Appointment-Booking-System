@@ -16,25 +16,25 @@ const app = express();
 // Global middleware
 app.use(cors());
 app.use(express.json());
-app.use(morgan("dev"));
+app.use(morgan('dev'));
 
 // Mount API routes
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/doctors", doctorRoutes);
-app.use("/api/patients", patientRoutes);
-app.use("/api/appointments", appointmentRoutes);
-app.use("/api/specialties", specialtyRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/specialties', specialtyRoutes);
 
 // 404 handler for unmatched routes
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: {
-      code: 404,
-      message: `Route ${req.originalUrl} not found`,
-    },
-  });
+    res.status(404).json({
+        success: false,
+        error: {
+            code: 404,
+            message: `Route ${req.originalUrl} not found`,
+        },
+    });
 });
 
 // Global error handler (must be last)

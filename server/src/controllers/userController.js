@@ -1,5 +1,5 @@
-import catchAsync from "../utils/catchAsync.js";
-import * as userService from "../services/userService.js";
+import catchAsync from '../utils/catchAsync.js';
+import * as userService from '../services/userService.js';
 
 /**
  * @desc    Get all users (paginated, filtered)
@@ -7,13 +7,13 @@ import * as userService from "../services/userService.js";
  * @access  Admin
  */
 const getAllUsers = catchAsync(async (req, res) => {
-  const { users, pagination } = await userService.getAllUsers(req.query);
+    const { users, pagination } = await userService.getAllUsers(req.query);
 
-  res.status(200).json({
-    success: true,
-    data: users,
-    pagination,
-  });
+    res.status(200).json({
+        success: true,
+        data: users,
+        pagination,
+    });
 });
 
 /**
@@ -22,12 +22,12 @@ const getAllUsers = catchAsync(async (req, res) => {
  * @access  Admin
  */
 const getUserById = catchAsync(async (req, res) => {
-  const user = await userService.getUserById(req.params.id);
+    const user = await userService.getUserById(req.params.id);
 
-  res.status(200).json({
-    success: true,
-    data: user,
-  });
+    res.status(200).json({
+        success: true,
+        data: user,
+    });
 });
 
 /**
@@ -36,13 +36,13 @@ const getUserById = catchAsync(async (req, res) => {
  * @access  Admin
  */
 const approveUser = catchAsync(async (req, res) => {
-  const user = await userService.approveUser(req.params.id);
+    const user = await userService.approveUser(req.params.id);
 
-  res.status(200).json({
-    success: true,
-    data: user,
-    message: "User approved successfully",
-  });
+    res.status(200).json({
+        success: true,
+        data: user,
+        message: 'User approved successfully',
+    });
 });
 
 /**
@@ -51,13 +51,13 @@ const approveUser = catchAsync(async (req, res) => {
  * @access  Admin
  */
 const blockUser = catchAsync(async (req, res) => {
-  const user = await userService.toggleBlockUser(req.params.id);
+    const user = await userService.toggleBlockUser(req.params.id);
 
-  res.status(200).json({
-    success: true,
-    data: user,
-    message: `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`,
-  });
+    res.status(200).json({
+        success: true,
+        data: user,
+        message: `User ${user.isBlocked ? 'blocked' : 'unblocked'} successfully`,
+    });
 });
 
 /**
@@ -66,13 +66,13 @@ const blockUser = catchAsync(async (req, res) => {
  * @access  Admin
  */
 const deleteUser = catchAsync(async (req, res) => {
-  await userService.deleteUser(req.params.id);
+    await userService.deleteUser(req.params.id);
 
-  res.status(200).json({
-    success: true,
-    data: null,
-    message: "User deleted successfully",
-  });
+    res.status(200).json({
+        success: true,
+        data: null,
+        message: 'User deleted successfully',
+    });
 });
 
 export { getAllUsers, getUserById, approveUser, blockUser, deleteUser };

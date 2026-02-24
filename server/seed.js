@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './src/config/db.js';
 import User from './src/models/User.js';
 import Doctor from './src/models/Doctor.js';
@@ -6,7 +8,12 @@ import Patient from './src/models/Patient.js';
 import Specialty from './src/models/Specialty.js';
 import Availability from './src/models/Availability.js';
 import Appointment from './src/models/Appointment.js';
+import bcrypt from 'bcryptjs';
 import { ROLES, APPOINTMENT_STATUS } from './src/utils/constants.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const seedDatabase = async () => {
     try {
@@ -34,10 +41,11 @@ const seedDatabase = async () => {
 
         // Create Admin User
         console.log('Creating admin user...');
+        const hashedAdminPassword = await bcrypt.hash('admin123', 10);
         const admin = await User.create({
             name: 'Admin User',
             email: 'admin@hospital.com',
-            password: 'admin123',
+            password: hashedAdminPassword,
             role: ROLES.ADMIN,
             isApproved: true,
             isBlocked: false,
@@ -46,11 +54,12 @@ const seedDatabase = async () => {
 
       
         console.log('Creating doctors...');
+        const hashedDoctorPassword = await bcrypt.hash('doctor123', 10);
         const doctorUsers = await User.insertMany([
             {
                 name: 'Dr. Ahmed Hassan',
                 email: 'ahmed.hassan@hospital.com',
-                password: 'doctor123',
+                password: hashedDoctorPassword,
                 role: ROLES.DOCTOR,
                 isApproved: true,
                 isBlocked: false,
@@ -58,7 +67,7 @@ const seedDatabase = async () => {
             {
                 name: 'Dr. Fatima Ali',
                 email: 'fatima.ali@hospital.com',
-                password: 'doctor123',
+                password: hashedDoctorPassword,
                 role: ROLES.DOCTOR,
                 isApproved: true,
                 isBlocked: false,
@@ -66,7 +75,7 @@ const seedDatabase = async () => {
             {
                 name: 'Dr. Mohamed Salah',
                 email: 'mohamed.salah@hospital.com',
-                password: 'doctor123',
+                password: hashedDoctorPassword,
                 role: ROLES.DOCTOR,
                 isApproved: true,
                 isBlocked: false,
@@ -79,29 +88,38 @@ const seedDatabase = async () => {
                 specialtyId: specialties[0]._id, // Cardiology
                 bio: 'Experienced cardiologist with 15 years of practice',
                 phone: '+201234567890',
+                address: 'Cairo Medical Tower, Nasr City, Cairo',
+                image: 'https://avatar.iran.liara.run/public/boy?username=ahmed-hassan',
             },
             {
                 userId: doctorUsers[1]._id,
                 specialtyId: specialties[1]._id, // Dermatology
                 bio: 'Specialist in skin conditions and cosmetic dermatology',
                 phone: '+201234567891',
+                address: 'Alex Clinic Center, Smouha, Alexandria',
+                image: 'https://avatar.iran.liara.run/public/girl?username=fatima-ali',
             },
             {
                 userId: doctorUsers[2]._id,
                 specialtyId: specialties[2]._id, // Pediatrics
                 bio: 'Caring for children\'s health and development',
                 phone: '+201234567892',
+                address: 'Children Health Hub, Dokki, Giza',
+                image: 'https://avatar.iran.liara.run/public/boy?username=mohamed-salah',
             },
         ]);
         console.log(`Created ${doctors.length} doctors`);
 
+        
         // Create Patient Users
+
         console.log('Creating patients...');
+        const hashedPassword = await bcrypt.hash('patient123', 10);
         const patientUsers = await User.insertMany([
             {
                 name: 'Sara Ibrahim',
                 email: 'sara.ibrahim@email.com',
-                password: 'patient123',
+                password: hashedPassword,
                 role: ROLES.PATIENT,
                 isApproved: true,
                 isBlocked: false,
@@ -109,7 +127,7 @@ const seedDatabase = async () => {
             {
                 name: 'Omar Khaled',
                 email: 'omar.khaled@email.com',
-                password: 'patient123',
+                password: hashedPassword,
                 role: ROLES.PATIENT,
                 isApproved: true,
                 isBlocked: false,
@@ -117,7 +135,7 @@ const seedDatabase = async () => {
             {
                 name: 'Layla Ahmed',
                 email: 'layla.ahmed@email.com',
-                password: 'patient123',
+                password: hashedPassword,
                 role: ROLES.PATIENT,
                 isApproved: true,
                 isBlocked: false,
@@ -130,22 +148,29 @@ const seedDatabase = async () => {
                 userId: patientUsers[0]._id,
                 phone: '+201112223333',
                 dateOfBirth: new Date('1990-05-15'),
+                address: '10 El-Nozha St, Heliopolis, Cairo',
+                image: 'https://avatar.iran.liara.run/public/girl?username=sara-ibrahim',
             },
             {
                 userId: patientUsers[1]._id,
                 phone: '+201112223334',
                 dateOfBirth: new Date('1985-08-22'),
+                address: '22 Corniche Rd, Sidi Gaber, Alexandria',
+                image: 'https://avatar.iran.liara.run/public/boy?username=omar-khaled',
             },
             {
                 userId: patientUsers[2]._id,
                 phone: '+201112223335',
                 dateOfBirth: new Date('2015-03-10'),
+                address: '5 Tahrir Sq, Dokki, Giza',
+                image: 'https://avatar.iran.liara.run/public/girl?username=layla-ahmed',
             },
         ]);
         console.log(`Created ${patients.length} patients`);
 
         // Create Availability Slots for Doctors
         console.log('Creating availability slots...');
+        
         const availabilities = await Availability.insertMany([
             // Dr. Ahmed Hassan - Cardiology (Monday to Friday, 9 AM - 5 PM)
             { doctorId: doctors[0]._id, dayOfWeek: 1, startTime: '09:00', endTime: '12:00' },

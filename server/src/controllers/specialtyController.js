@@ -1,133 +1,99 @@
-import Specialty from "../models/Specialty.js";
-import Doctor from "../models/Doctor.js";
+import Specialty from '../models/Specialty.js';
+import catchAsync from '../utils/catchAsync.js';
+import ApiError from '../utils/ApiError.js';
 
-const getAllSpecialties = async (req, res) => {
-  try {
+/**
+ * @desc    Get all specialties
+ * @route   GET /api/specialties
+ * @access  Public
+ */
+const getAllSpecialties = catchAsync(async (req, res) => {
     const specialties = await Specialty.find().sort({ name: 1 });
 
     res.status(200).json({
-      success: true,
-      count: specialties.length,
-      data: specialties,
+        success: true,
+        data: specialties,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+});
 
-const getSpecialtyById = async (req, res) => {
-  try {
-    const { id } = req.params;
+/**
+ * @desc    Get specialty by ID
+ * @route   GET /api/specialties/:id
+ * @access  Public
+ */
+const getSpecialtyById = catchAsync(async (req, res) => {
+    const specialty = await Specialty.findById(req.params.id);
 
-    const specialty = await Specialty.findById(id);
-    if (!specialty)
-      return res.status(404).json({
-        success: false,
-        message: "Specialty not found",
-      });
+    if (!specialty) {
+        throw new ApiError(404, 'Specialty not found');
+    }
 
     res.status(200).json({
-      success: true,
-      data: specialty,
+        success: true,
+        data: specialty,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+});
 
-// --- Admin-only ---
-
-const createSpecialty = async (req, res) => {
-  try {
+/**
+ * @desc    Create a new specialty
+ * @route   POST /api/specialties
+ * @access  Admin
+ */
+const createSpecialty = catchAsync(async (req, res) => {
     const { name, description } = req.body;
-
-    const existing = await Specialty.findOne({ name });
-    if (existing)
-      return res.status(400).json({
-        success: false,
-        message: "Specialty already exists",
-      });
 
     const specialty = await Specialty.create({ name, description });
 
     res.status(201).json({
-      success: true,
-      data: specialty,
+        success: true,
+        data: specialty,
+        message: 'Specialty created successfully',
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+});
 
-const updateSpecialty = async (req, res) => {
-  try {
-    const { id } = req.params;
+/**
+ * @desc    Update a specialty
+ * @route   PUT /api/specialties/:id
+ * @access  Admin
+ */
+const updateSpecialty = catchAsync(async (req, res) => {
     const { name, description } = req.body;
 
-    const specialty = await Specialty.findById(id);
-    if (!specialty)
-      return res.status(404).json({
-        success: false,
-        message: "Specialty not found",
-      });
+    const specialty = await Specialty.findByIdAndUpdate(
+        req.params.id,
+        { name, description },
+        { new: true, runValidators: true }
+    );
 
-    if (name) specialty.name = name;
-    if (description !== undefined) specialty.description = description;
-
-    await specialty.save();
+    if (!specialty) {
+        throw new ApiError(404, 'Specialty not found');
+    }
 
     res.status(200).json({
-      success: true,
-      data: specialty,
+        success: true,
+        data: specialty,
+        message: 'Specialty updated successfully',
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+});
 
-const deleteSpecialty = async (req, res) => {
-  try {
-    const { id } = req.params;
+/**
+ * @desc    Delete a specialty
+ * @route   DELETE /api/specialties/:id
+ * @access  Admin
+ */
+const deleteSpecialty = catchAsync(async (req, res) => {
+    const specialty = await Specialty.findByIdAndDelete(req.params.id);
 
-    const specialty = await Specialty.findById(id);
-    if (!specialty)
-      return res.status(404).json({
-        success: false,
-        message: "Specialty not found",
-      });
-
-    const doctorsUsingIt = await Doctor.countDocuments({ specialtyId: id });
-    if (doctorsUsingIt > 0)
-      return res.status(400).json({
-        success: false,
-        message: "Cannot delete specialty assigned to doctors",
-      });
-
-    await specialty.deleteOne();
+    if (!specialty) {
+        throw new ApiError(404, 'Specialty not found');
+    }
 
     res.status(200).json({
-      success: true,
-      message: "Specialty deleted successfully",
+        success: true,
+        data: null,
+        message: 'Specialty deleted successfully',
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+});
 
 export {
   getAllSpecialties,
