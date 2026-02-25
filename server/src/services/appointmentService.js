@@ -6,9 +6,6 @@ import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import { APPOINTMENT_STATUS, toMinutes, MAX_APPOINTMENT_DURATION_MINUTES } from '../utils/constants.js';
 
-/**
- * Get all appointments with pagination and filtering (admin).
- */
 const getAllAppointments = async (query) => {
     const {
         page = 1,
@@ -68,10 +65,6 @@ const getAllAppointments = async (query) => {
     };
 };
 
-/**
- * Get a single appointment by ID with populated refs.
- * Checks ownership: admin can view any, doctor/patient can only view own.
- */
 const getAppointmentById = async (appointmentId, requestingUser) => {
     const appointment = await Appointment.findById(appointmentId)
         .populate({
@@ -101,9 +94,6 @@ const getAppointmentById = async (appointmentId, requestingUser) => {
     return appointment;
 };
 
-/**
- * Find appointment and verify doctor ownership.
- */
 const findAndVerifyDoctorOwnership = async (appointmentId, userId) => {
     const appointment = await Appointment.findById(appointmentId);
     if (!appointment) {
@@ -118,9 +108,6 @@ const findAndVerifyDoctorOwnership = async (appointmentId, userId) => {
     return appointment;
 };
 
-/**
- * Find appointment and verify patient ownership.
- */
 const findAndVerifyPatientOwnership = async (appointmentId, userId) => {
     const appointment = await Appointment.findById(appointmentId);
     if (!appointment) {
@@ -135,9 +122,6 @@ const findAndVerifyPatientOwnership = async (appointmentId, userId) => {
     return { appointment, patient };
 };
 
-/**
- * Approve a pending appointment (doctor action).
- */
 const approveAppointment = async (appointmentId, userId) => {
     const appointment = await findAndVerifyDoctorOwnership(appointmentId, userId);
 
@@ -150,9 +134,6 @@ const approveAppointment = async (appointmentId, userId) => {
     return appointment;
 };
 
-/**
- * Reject a pending appointment (doctor action).
- */
 const rejectAppointment = async (appointmentId, userId) => {
     const appointment = await findAndVerifyDoctorOwnership(appointmentId, userId);
 
@@ -165,9 +146,6 @@ const rejectAppointment = async (appointmentId, userId) => {
     return appointment;
 };
 
-/**
- * Mark a confirmed appointment as completed (doctor action).
- */
 const completeAppointment = async (appointmentId, userId) => {
     const appointment = await findAndVerifyDoctorOwnership(appointmentId, userId);
 
@@ -180,10 +158,6 @@ const completeAppointment = async (appointmentId, userId) => {
     return appointment;
 };
 
-
-/**
- * List appointments for a doctor.
- */
 const getDoctorAppointments = async (userId, query = {}) => {
     const doctor = await Doctor.findOne({ userId });
     if (!doctor) {
@@ -211,10 +185,6 @@ const getDoctorAppointments = async (userId, query = {}) => {
         .sort({ date: -1, startTime: -1 });
 };
 
-
-/**
- * Add/update doctor notes on an appointment.
- */
 const addNotes = async (appointmentId, userId, notes) => {
     if (!notes || typeof notes !== 'string') {
         throw new ApiError(400, 'Notes field is required and must be a string');
@@ -227,9 +197,6 @@ const addNotes = async (appointmentId, userId, notes) => {
     return appointment;
 };
 
-/**
- * Book a new appointment (patient action).
- */
 const bookAppointment = async (userId, { doctorId, date, startTime, endTime, reason }) => {
     const patient = await Patient.findOne({ userId });
     if (!patient) {
@@ -276,7 +243,6 @@ const bookAppointment = async (userId, { doctorId, date, startTime, endTime, rea
         throw new ApiError(404, 'Doctor not found');
     }
 
-    // Verify doctor is approved
     const doctorUser = await User.findById(doctor.userId._id || doctor.userId);
     if (!doctorUser || !doctorUser.isApproved || doctorUser.isBlocked) {
         throw new ApiError(400, 'This doctor is not available for appointments');
@@ -334,9 +300,6 @@ const bookAppointment = async (userId, { doctorId, date, startTime, endTime, rea
     return { appointment, doctorName: doctor.userId?.name };
 };
 
-/**
- * List appointments for a patient.
- */
 const getPatientAppointments = async (userId, query = {}) => {
     const patient = await Patient.findOne({ userId });
     if (!patient) {
@@ -370,9 +333,6 @@ const getPatientAppointments = async (userId, query = {}) => {
     };
 };
 
-/**
- * Cancel a patient's own appointment (via patient routes).
- */
 const cancelPatientAppointment = async (appointmentId, userId) => {
     const patient = await Patient.findOne({ userId });
     if (!patient) {
@@ -401,9 +361,6 @@ const cancelPatientAppointment = async (appointmentId, userId) => {
     return appointment;
 };
 
-/**
- * Reschedule a patient's own appointment (via patient routes).
- */
 const reschedulePatientAppointment = async (appointmentId, userId, data) => {
     const patient = await Patient.findOne({ userId });
     if (!patient) {
@@ -508,7 +465,6 @@ const reschedulePatientAppointment = async (appointmentId, userId, data) => {
     appointment.status = APPOINTMENT_STATUS.PENDING;
     await appointment.save();
 
-    // Fetch doctor name for email
     const doctor = await Doctor.findById(appointment.doctorId).populate('userId', 'name');
 
     return { appointment, doctorName: doctor?.userId?.name };
@@ -527,4 +483,3 @@ export {
     cancelPatientAppointment,
     reschedulePatientAppointment,
 };
-

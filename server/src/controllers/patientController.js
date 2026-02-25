@@ -6,22 +6,12 @@ import {
   sendAppointmentRescheduleConfirmation,
 } from '../services/emailService.js';
 
-/**
- * @desc    Get own patient profile
- * @route   GET /api/patients/profile
- * @access  Patient
- */
 const getProfile = catchAsync(async (req, res) => {
   const data = await patientService.getProfile(req.user._id);
 
   res.status(200).json({ success: true, data });
 });
 
-/**
- * @desc    Update own patient profile
- * @route   PUT /api/patients/profile
- * @access  Patient
- */
 const updateProfile = catchAsync(async (req, res) => {
   const data = await patientService.updateProfile(req.user._id, req.body);
 
@@ -32,22 +22,12 @@ const updateProfile = catchAsync(async (req, res) => {
   });
 });
 
-/**
- * @desc    List own appointments
- * @route   GET /api/patients/appointments
- * @access  Patient
- */
 const listAppointments = catchAsync(async (req, res) => {
   const { appointments, pagination } = await appointmentService.getPatientAppointments(req.user._id, req.query);
 
   res.status(200).json({ success: true, data: appointments, pagination });
 });
 
-/**
- * @desc    Cancel own appointment
- * @route   PATCH /api/patients/appointments/:id/cancel
- * @access  Patient
- */
 const cancelAppointment = catchAsync(async (req, res) => {
   const data = await appointmentService.cancelPatientAppointment(req.params.id, req.user._id);
 
@@ -58,11 +38,6 @@ const cancelAppointment = catchAsync(async (req, res) => {
   });
 });
 
-/**
- * @desc    Reschedule own appointment
- * @route   PATCH /api/patients/appointments/:id/reschedule
- * @access  Patient
- */
 const rescheduleAppointment = catchAsync(async (req, res) => {
   const { appointment, doctorName } = await appointmentService.reschedulePatientAppointment(
     req.params.id,
@@ -70,7 +45,6 @@ const rescheduleAppointment = catchAsync(async (req, res) => {
     req.body
   );
 
-  // Send reschedule email (fire-and-forget)
   if (req.user?.email) {
     try {
       await sendAppointmentRescheduleConfirmation({
@@ -93,18 +67,12 @@ const rescheduleAppointment = catchAsync(async (req, res) => {
   });
 });
 
-/**
- * @desc    Book a new appointment
- * @route   POST /api/patients/appointments
- * @access  Patient
- */
 const bookAppointment = catchAsync(async (req, res) => {
   const { appointment, doctorName } = await appointmentService.bookAppointment(
     req.user._id,
     req.body
   );
 
-  // Send confirmation email (fire-and-forget)
   if (req.user?.email) {
     try {
       await sendAppointmentConfirmation({

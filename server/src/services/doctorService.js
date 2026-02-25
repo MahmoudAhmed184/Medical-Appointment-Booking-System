@@ -7,9 +7,6 @@ import { APPOINTMENT_STATUS, toMinutes } from '../utils/constants.js';
 
 const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
 
-/**
- * Format a doctor document with optional availability for API responses.
- */
 const formatDoctor = (doctorDoc, availability = []) => {
     const doctor = doctorDoc?.toObject ? doctorDoc.toObject() : doctorDoc;
     return {
@@ -24,9 +21,6 @@ const formatDoctor = (doctorDoc, availability = []) => {
     };
 };
 
-/**
- * Normalize availability rows to plain objects.
- */
 const normalizeAvailability = (rows) =>
     rows.map((row) => ({
         dayOfWeek: row.dayOfWeek,
@@ -34,9 +28,6 @@ const normalizeAvailability = (rows) =>
         endTime: row.endTime,
     }));
 
-/**
- * Get a populated Doctor document by userId.
- */
 const getDoctorByUserId = async (userId) => {
     const doctor = await Doctor.findOne({ userId })
         .populate('userId', 'name email')
@@ -47,9 +38,6 @@ const getDoctorByUserId = async (userId) => {
     return doctor;
 };
 
-/**
- * Get the Doctor _id from an authenticated userId.
- */
 const getDoctorIdByUserId = async (userId) => {
     const doctor = await Doctor.findOne({ userId });
     if (!doctor) {
@@ -58,9 +46,6 @@ const getDoctorIdByUserId = async (userId) => {
     return doctor._id;
 };
 
-/**
- * Get own doctor profile with availability.
- */
 const getProfile = async (userId) => {
     const doctor = await getDoctorByUserId(userId);
 
@@ -71,9 +56,6 @@ const getProfile = async (userId) => {
     return formatDoctor(doctor, normalizeAvailability(availability));
 };
 
-/**
- * Get all approved, non-blocked doctors with their availability.
- */
 const getAllDoctors = async (query = {}) => {
     const { specialty, search, page = 1, limit = 10 } = query;
     const pageNum = Math.max(1, Number(page));
@@ -103,7 +85,6 @@ const getAllDoctors = async (query = {}) => {
         .skip(skip)
         .limit(limitNum);
 
-    // Batch-load availability for all doctors
     const doctorIds = doctors.map((doc) => doc._id);
     const availabilityRows = await Availability.find({ doctorId: { $in: doctorIds } })
         .select('doctorId dayOfWeek startTime endTime')
@@ -132,9 +113,6 @@ const getAllDoctors = async (query = {}) => {
     };
 };
 
-/**
- * Get a doctor by their Doctor profile _id with availability.
- */
 const getDoctorById = async (id) => {
     const doctor = await Doctor.findById(id)
         .populate('userId', 'name email')
@@ -151,9 +129,6 @@ const getDoctorById = async (id) => {
     return formatDoctor(doctor, normalizeAvailability(availability));
 };
 
-/**
- * Update a doctor's profile and associated user record.
- */
 const updateProfile = async (userId, data) => {
     const doctor = await Doctor.findOne({ userId });
     if (!doctor) {
@@ -187,22 +162,15 @@ const updateProfile = async (userId, data) => {
     return formatDoctor(updatedDoctor, normalizeAvailability(availability));
 };
 
-/**
- * Get all availability slots for a doctor by userId.
- */
 const getAvailability = async (userId) => {
     const doctorId = await getDoctorIdByUserId(userId);
     return Availability.find({ doctorId }).sort({ dayOfWeek: 1, startTime: 1 });
 };
 
-/**
- * Create a new availability slot for a doctor.
- */
 const setAvailability = async (userId, slotData) => {
     const doctorId = await getDoctorIdByUserId(userId);
     const { dayOfWeek, startTime, endTime } = slotData;
 
-    // Check for overlapping slots
     const exists = await Availability.findOne({
         doctorId,
         dayOfWeek,
@@ -219,9 +187,6 @@ const setAvailability = async (userId, slotData) => {
     return Availability.create({ doctorId, dayOfWeek, startTime, endTime });
 };
 
-/**
- * Update an availability slot (verifies ownership).
- */
 const updateAvailabilitySlot = async (userId, slotId, data) => {
     const slot = await Availability.findById(slotId);
     if (!slot) {
@@ -256,9 +221,6 @@ const updateAvailabilitySlot = async (userId, slotId, data) => {
     return slot;
 };
 
-/**
- * Delete an availability slot (verifies ownership).
- */
 const deleteAvailabilitySlot = async (userId, slotId) => {
     const slot = await Availability.findById(slotId);
     if (!slot) {
@@ -273,10 +235,6 @@ const deleteAvailabilitySlot = async (userId, slotId) => {
     await Availability.findByIdAndDelete(slotId);
 };
 
-/**
- * Get available slots for a doctor on a specific date,
- * subtracting already-booked appointments (SRS FR-PAT-02).
- */
 const getAvailableSlots = async (doctorId, date) => {
     const requestedDate = new Date(date);
     if (isNaN(requestedDate.getTime())) {
@@ -285,10 +243,8 @@ const getAvailableSlots = async (doctorId, date) => {
 
     const dayOfWeek = requestedDate.getDay();
 
-    // 1. Fetch doctor's availability for this day of week
     const slots = await Availability.find({ doctorId, dayOfWeek }).sort({ startTime: 1 });
 
-    // 2. Fetch already-booked appointments for this doctor on this date
     const dayStart = new Date(requestedDate);
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(requestedDate);
@@ -299,8 +255,6 @@ const getAvailableSlots = async (doctorId, date) => {
         date: { $gte: dayStart, $lte: dayEnd },
         status: { $nin: [APPOINTMENT_STATUS.CANCELLED, APPOINTMENT_STATUS.REJECTED] },
     }).select('startTime endTime');
-
-    // 3. Subtract booked slots from available slots
 
     return slots.filter((slot) => {
         const slotStart = toMinutes(slot.startTime);

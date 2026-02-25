@@ -4,8 +4,6 @@ import morgan from "morgan";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import errorHandler from "./middleware/errorHandler.js";
-
-// Route imports
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
@@ -15,11 +13,8 @@ import specialtyRoutes from "./routes/specialtyRoutes.js";
 
 const app = express();
 
-// Security middleware
 app.use(helmet());
 app.use(mongoSanitize());
-
-// Global middleware
 app.use(cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     credentials: true,
@@ -27,7 +22,6 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));
 app.use(morgan('dev'));
 
-// Mount API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
@@ -35,7 +29,6 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/specialties', specialtyRoutes);
 
-// 404 handler for unmatched routes
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -46,7 +39,6 @@ app.use((req, res) => {
     });
 });
 
-// Global error handler (must be last)
 app.use(errorHandler);
 
 export default app;

@@ -1,7 +1,3 @@
-/**
- * Application-wide constants and enums.
- */
-
 const ROLES = {
     ADMIN: 'admin',
     DOCTOR: 'doctor',
@@ -28,9 +24,6 @@ const DAYS_OF_WEEK = {
 
 const MAX_APPOINTMENT_DURATION_MINUTES = 60;
 
-/**
- * Convert an "HH:mm" time string to total minutes since midnight.
- */
 const toMinutes = (time) => {
     const [h, m] = time.split(':').map(Number);
     return h * 60 + m;
@@ -43,4 +36,3 @@ export {
     MAX_APPOINTMENT_DURATION_MINUTES,
     toMinutes,
 };
-

@@ -1,16 +1,10 @@
 import Specialty from '../models/Specialty.js';
 import ApiError from '../utils/ApiError.js';
 
-/**
- * Get all specialties sorted by name.
- */
 const getAllSpecialties = async () => {
     return Specialty.find().sort({ name: 1 });
 };
 
-/**
- * Get a single specialty by ID.
- */
 const getSpecialtyById = async (id) => {
     const specialty = await Specialty.findById(id);
 
@@ -21,16 +15,10 @@ const getSpecialtyById = async (id) => {
     return specialty;
 };
 
-/**
- * Create a new specialty.
- */
 const createSpecialty = async ({ name, description }) => {
     return Specialty.create({ name, description });
 };
 
-/**
- * Update an existing specialty.
- */
 const updateSpecialty = async (id, { name, description }) => {
     const specialty = await Specialty.findByIdAndUpdate(
         id,
@@ -45,9 +33,6 @@ const updateSpecialty = async (id, { name, description }) => {
     return specialty;
 };
 
-/**
- * Delete a specialty.
- */
 const deleteSpecialty = async (id) => {
     const specialty = await Specialty.findByIdAndDelete(id);
 

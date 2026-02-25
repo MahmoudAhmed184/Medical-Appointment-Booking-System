@@ -2,9 +2,6 @@ import Patient from '../models/Patient.js';
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 
-/**
- * Get a patient profile by userId, populated with user details.
- */
 const getProfile = async (userId) => {
     const patient = await Patient.findOne({ userId }).populate('user');
     if (!patient) {
@@ -14,9 +11,6 @@ const getProfile = async (userId) => {
     return patient;
 };
 
-/**
- * Update a patient's profile and associated user record.
- */
 const updateProfile = async (userId, data) => {
     const patient = await Patient.findOne({ userId });
     if (!patient) {

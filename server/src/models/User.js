@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Password is required'],
             minlength: [6, 'Password must be at least 6 characters long'],
-            select: false, // Don't return password in queries by default
+            select: false,
         },
         role: {
             type: String,
@@ -46,15 +46,11 @@ const userSchema = new mongoose.Schema(
         },
     },
     {
-        timestamps: true, // Adds createdAt and updatedAt
+        timestamps: true,
     }
 );
 
-
-
-// Pre-save hook for password hashing
 userSchema.pre('save', async function (next) {
-    // Only hash the password if it has been modified (or is new)
     if (!this.isModified('password')) {
         return next();
     }
@@ -68,11 +64,9 @@ userSchema.pre('save', async function (next) {
     }
 });
 
-// Instance method to compare password for login
 userSchema.methods.comparePassword = async function (candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
 };
-
 
 const User = mongoose.model('User', userSchema);
 

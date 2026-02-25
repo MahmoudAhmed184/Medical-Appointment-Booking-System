@@ -8,7 +8,6 @@ import app from './src/app.js';
 
 const PORT = process.env.PORT || 5000;
 
-// Connect to database, then start the server
 connectDB()
     .then((conn) => {
         console.log(`MongoDB connected successfully: ${conn.connection.host}`);
@@ -17,7 +16,6 @@ connectDB()
             console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
         });
 
-        // Graceful shutdown handler
         const gracefulShutdown = async (signal) => {
             console.log(`\n${signal} received. Shutting down gracefully…`);
             server.close(async () => {
