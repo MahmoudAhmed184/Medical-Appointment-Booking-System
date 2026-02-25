@@ -4,12 +4,7 @@ import Patient from '../models/Patient.js';
 import Availability from '../models/Availability.js';
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
-import { APPOINTMENT_STATUS } from '../utils/constants.js';
-
-const toMinutes = (time) => {
-    const [h, m] = time.split(':').map(Number);
-    return h * 60 + m;
-};
+import { APPOINTMENT_STATUS, toMinutes, MAX_APPOINTMENT_DURATION_MINUTES } from '../utils/constants.js';
 
 /**
  * Get all appointments with pagination and filtering (admin).
@@ -243,6 +238,10 @@ const rescheduleAppointment = async (appointmentId, userId, { date, startTime, e
         throw new ApiError(400, 'endTime must be greater than startTime');
     }
 
+    if (endMinutes - startMinutes > MAX_APPOINTMENT_DURATION_MINUTES) {
+        throw new ApiError(400, 'Appointment duration cannot exceed 1 hour');
+    }
+
     // Check not in the past
     const now = new Date();
     const startDateTime = new Date(appointmentDay);
@@ -353,7 +352,6 @@ const bookAppointment = async (userId, { doctorId, date, startTime, endTime, rea
         throw new ApiError(400, 'endTime must be greater than startTime');
     }
 
-    const MAX_APPOINTMENT_DURATION_MINUTES = 60;
     if (endMinutes - startMinutes > MAX_APPOINTMENT_DURATION_MINUTES) {
         throw new ApiError(400, 'Appointment duration cannot exceed 1 hour');
     }
@@ -526,7 +524,6 @@ const reschedulePatientAppointment = async (appointmentId, userId, data) => {
         throw new ApiError(400, 'endTime must be greater than startTime');
     }
 
-    const MAX_APPOINTMENT_DURATION_MINUTES = 60;
     if (endMinutes - startMinutes > MAX_APPOINTMENT_DURATION_MINUTES) {
         throw new ApiError(400, 'Appointment duration cannot exceed 1 hour');
     }

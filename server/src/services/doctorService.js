@@ -3,7 +3,7 @@ import User from '../models/User.js';
 import Availability from '../models/Availability.js';
 import Appointment from '../models/Appointment.js';
 import ApiError from '../utils/ApiError.js';
-import { APPOINTMENT_STATUS } from '../utils/constants.js';
+import { APPOINTMENT_STATUS, toMinutes } from '../utils/constants.js';
 
 const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
 
@@ -288,10 +288,6 @@ const getAvailableSlots = async (doctorId, date) => {
     }).select('startTime endTime');
 
     // 3. Subtract booked slots from available slots
-    const toMinutes = (time) => {
-        const [h, m] = time.split(':').map(Number);
-        return h * 60 + m;
-    };
 
     return slots.filter((slot) => {
         const slotStart = toMinutes(slot.startTime);

@@ -26,8 +26,21 @@ const DAYS_OF_WEEK = {
     SATURDAY: 6,
 };
 
+const MAX_APPOINTMENT_DURATION_MINUTES = 60;
+
+/**
+ * Convert an "HH:mm" time string to total minutes since midnight.
+ */
+const toMinutes = (time) => {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+};
+
 export {
     ROLES,
     APPOINTMENT_STATUS,
     DAYS_OF_WEEK,
+    MAX_APPOINTMENT_DURATION_MINUTES,
+    toMinutes,
 };
+
