@@ -19,31 +19,14 @@ import {
 
 const router = express.Router();
 
-// --- Doctor-only routes ---
 router.get('/profile', auth, authorize(ROLES.DOCTOR), getProfile);
 router.put('/profile', auth, authorize(ROLES.DOCTOR), validate(updateDoctorProfileSchema), updateProfile);
-
-// GET  /api/doctors/availability
 router.get('/availability', auth, authorize(ROLES.DOCTOR), getAvailability);
-
-// POST /api/doctors/availability
 router.post('/availability', auth, authorize(ROLES.DOCTOR), validate(createAvailabilitySchema), setAvailability);
-
-// PUT  /api/doctors/availability/:slotId
 router.put('/availability/:slotId', auth, authorize(ROLES.DOCTOR), validate(updateAvailabilitySchema), updateAvailabilitySlot);
-
-// DELETE /api/doctors/availability/:slotId
 router.delete('/availability/:slotId', auth, authorize(ROLES.DOCTOR), deleteAvailabilitySlot);
-
-// --- Public routes ---
-// GET /api/doctors
 router.get('/', getAllDoctors);
-
-// GET /api/doctors/:id
 router.get('/:id', getDoctorById);
-
-// --- Patient routes ---
-// GET /api/doctors/:id/available-slots?date=YYYY-MM-DD
 router.get('/:id/available-slots', auth, authorize(ROLES.PATIENT), getAvailableSlots);
 
 export default router;

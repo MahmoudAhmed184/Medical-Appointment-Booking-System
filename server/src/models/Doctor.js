@@ -46,10 +46,8 @@ const doctorSchema = new mongoose.Schema(
     }
 );
 
-// Index for faster lookups (userId index is auto-created by unique: true)
 doctorSchema.index({ specialtyId: 1 });
 
-// Virtual populate for user details
 doctorSchema.virtual('user', {
     ref: 'User',
     localField: 'userId',
@@ -57,7 +55,6 @@ doctorSchema.virtual('user', {
     justOne: true,
 });
 
-// Virtual populate for specialty details
 doctorSchema.virtual('specialty', {
     ref: 'Specialty',
     localField: 'specialtyId',

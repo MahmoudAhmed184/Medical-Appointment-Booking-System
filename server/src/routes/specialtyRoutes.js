@@ -17,21 +17,10 @@ import {
 
 const router = express.Router();
 
-// --- Public routes ---
-// GET /api/specialties
 router.get('/', getAllSpecialties);
-
-// GET /api/specialties/:id
 router.get('/:id', getSpecialtyById);
-
-// --- Admin-only routes ---
-// POST   /api/specialties
 router.post('/', auth, authorize(ROLES.ADMIN), validate(createSpecialtySchema), createSpecialty);
-
-// PUT    /api/specialties/:id
 router.put('/:id', auth, authorize(ROLES.ADMIN), validate(updateSpecialtySchema), updateSpecialty);
-
-// DELETE /api/specialties/:id
 router.delete('/:id', auth, authorize(ROLES.ADMIN), deleteSpecialty);
 
 export default router;

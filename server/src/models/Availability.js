@@ -37,7 +37,6 @@ const availabilitySchema = new mongoose.Schema(
     }
 );
 
-// Custom validation: endTime must be after startTime
 availabilitySchema.pre('save', function (next) {
     const start = this.startTime.split(':').map(Number);
     const end = this.endTime.split(':').map(Number);
@@ -52,10 +51,7 @@ availabilitySchema.pre('save', function (next) {
     next();
 });
 
-
-// Compound unique index to prevent duplicate slots for the same doctor on the same day and time
 availabilitySchema.index({ doctorId: 1, dayOfWeek: 1, startTime: 1 }, { unique: true });
-
 
 const Availability = mongoose.model('Availability', availabilitySchema);
 

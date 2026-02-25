@@ -1,9 +1,3 @@
-/**
- * Environment variable validation.
- * Ensures all required env vars are set before the app starts.
- * Import this at the top of server.js (after dotenv).
- */
-
 const requiredVars = [
     'MONGO_URI',
     'JWT_SECRET',
@@ -29,7 +23,6 @@ const validateEnv = () => {
         process.exit(1);
     }
 
-    // Set defaults for optional vars
     for (const { name, default: defaultValue } of optionalVars) {
         if (!process.env[name]) {
             process.env[name] = defaultValue;

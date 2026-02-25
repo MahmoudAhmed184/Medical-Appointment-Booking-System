@@ -1,7 +1,3 @@
-/**
- * JWT verification middleware.
- * Verifies the Bearer token and attaches decoded payload to req.user.
- */
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import { verifyToken } from '../utils/tokenUtils.js';

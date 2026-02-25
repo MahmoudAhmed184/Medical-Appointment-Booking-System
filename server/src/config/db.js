@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-// Connection event listeners
 mongoose.connection.on('error', (err) => {
     console.error('MongoDB connection error:', err);
 });
@@ -14,4 +13,3 @@ const connectDB = () => {
 };
 
 export { connectDB };
-
