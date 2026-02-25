@@ -1,15 +1,82 @@
 import Doctor from '../models/Doctor.js';
 import User from '../models/User.js';
 import Availability from '../models/Availability.js';
+import Appointment from '../models/Appointment.js';
 import ApiError from '../utils/ApiError.js';
+import { APPOINTMENT_STATUS } from '../utils/constants.js';
+
+const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
 
 /**
- * Get all approved doctors with their availability.
+ * Format a doctor document with optional availability for API responses.
+ */
+const formatDoctor = (doctorDoc, availability = []) => {
+    const doctor = doctorDoc?.toObject ? doctorDoc.toObject() : doctorDoc;
+    return {
+        _id: doctor?._id,
+        userId: doctor?.userId,
+        specialtyId: doctor?.specialtyId,
+        bio: doctor?.bio || '',
+        phone: doctor?.phone || '',
+        address: doctor?.address || '',
+        image: doctor?.image || DOCTOR_DEFAULT_AVATAR,
+        availability,
+    };
+};
+
+/**
+ * Normalize availability rows to plain objects.
+ */
+const normalizeAvailability = (rows) =>
+    rows.map((row) => ({
+        dayOfWeek: row.dayOfWeek,
+        startTime: row.startTime,
+        endTime: row.endTime,
+    }));
+
+/**
+ * Get a populated Doctor document by userId.
+ */
+const getDoctorByUserId = async (userId) => {
+    const doctor = await Doctor.findOne({ userId })
+        .populate('userId', 'name email')
+        .populate('specialtyId', 'name description');
+    if (!doctor) {
+        throw new ApiError(404, 'Doctor profile not found');
+    }
+    return doctor;
+};
+
+/**
+ * Get the Doctor _id from an authenticated userId.
+ */
+const getDoctorIdByUserId = async (userId) => {
+    const doctor = await Doctor.findOne({ userId });
+    if (!doctor) {
+        throw new ApiError(404, 'Doctor profile not found');
+    }
+    return doctor._id;
+};
+
+/**
+ * Get own doctor profile with availability.
+ */
+const getProfile = async (userId) => {
+    const doctor = await getDoctorByUserId(userId);
+
+    const availability = await Availability.find({ doctorId: doctor._id })
+        .select('dayOfWeek startTime endTime')
+        .sort({ dayOfWeek: 1, startTime: 1 });
+
+    return formatDoctor(doctor, normalizeAvailability(availability));
+};
+
+/**
+ * Get all approved, non-blocked doctors with their availability.
  */
 const getAllDoctors = async (query = {}) => {
     const { specialty, search } = query;
 
-    // Get only approved, non-blocked doctor users
     const userFilter = { role: 'doctor', isApproved: true, isBlocked: false };
     if (search) {
         userFilter.name = { $regex: search, $options: 'i' };
@@ -28,11 +95,32 @@ const getAllDoctors = async (query = {}) => {
         .populate('specialtyId', 'name description')
         .sort({ createdAt: -1 });
 
-    return doctors;
+    // Batch-load availability for all doctors
+    const doctorIds = doctors.map((doc) => doc._id);
+    const availabilityRows = await Availability.find({ doctorId: { $in: doctorIds } })
+        .select('doctorId dayOfWeek startTime endTime')
+        .sort({ dayOfWeek: 1, startTime: 1 });
+
+    const availabilityByDoctorId = new Map();
+    for (const row of availabilityRows) {
+        const key = String(row.doctorId);
+        if (!availabilityByDoctorId.has(key)) {
+            availabilityByDoctorId.set(key, []);
+        }
+        availabilityByDoctorId.get(key).push({
+            dayOfWeek: row.dayOfWeek,
+            startTime: row.startTime,
+            endTime: row.endTime,
+        });
+    }
+
+    return doctors.map((doc) =>
+        formatDoctor(doc, availabilityByDoctorId.get(String(doc._id)) || [])
+    );
 };
 
 /**
- * Get a doctor by their Doctor profile _id.
+ * Get a doctor by their Doctor profile _id with availability.
  */
 const getDoctorById = async (id) => {
     const doctor = await Doctor.findById(id)
@@ -43,7 +131,11 @@ const getDoctorById = async (id) => {
         throw new ApiError(404, 'Doctor not found');
     }
 
-    return doctor;
+    const availability = await Availability.find({ doctorId: doctor._id })
+        .select('dayOfWeek startTime endTime')
+        .sort({ dayOfWeek: 1, startTime: 1 });
+
+    return formatDoctor(doctor, normalizeAvailability(availability));
 };
 
 /**
@@ -65,27 +157,36 @@ const updateProfile = async (userId, data) => {
 
     if (name !== undefined || email !== undefined) {
         const user = await User.findById(userId);
+        if (!user) throw new ApiError(404, 'User not found');
         if (name !== undefined) user.name = name;
         if (email !== undefined) user.email = email;
         await user.save();
     }
 
-    return Doctor.findById(doctor._id)
+    const updatedDoctor = await Doctor.findById(doctor._id)
         .populate('userId', 'name email')
         .populate('specialtyId', 'name description');
+
+    const availability = await Availability.find({ doctorId: doctor._id })
+        .select('dayOfWeek startTime endTime')
+        .sort({ dayOfWeek: 1, startTime: 1 });
+
+    return formatDoctor(updatedDoctor, normalizeAvailability(availability));
 };
 
 /**
- * Get all availability slots for a doctor.
+ * Get all availability slots for a doctor by userId.
  */
-const getAvailability = async (doctorId) => {
+const getAvailability = async (userId) => {
+    const doctorId = await getDoctorIdByUserId(userId);
     return Availability.find({ doctorId }).sort({ dayOfWeek: 1, startTime: 1 });
 };
 
 /**
- * Create a new availability slot.
+ * Create a new availability slot for a doctor.
  */
-const setAvailability = async (doctorId, slotData) => {
+const setAvailability = async (userId, slotData) => {
+    const doctorId = await getDoctorIdByUserId(userId);
     const { dayOfWeek, startTime, endTime } = slotData;
 
     // Check for overlapping slots
@@ -106,12 +207,17 @@ const setAvailability = async (doctorId, slotData) => {
 };
 
 /**
- * Update an existing availability slot.
+ * Update an availability slot (verifies ownership).
  */
-const updateAvailabilitySlot = async (slotId, data) => {
+const updateAvailabilitySlot = async (userId, slotId, data) => {
     const slot = await Availability.findById(slotId);
     if (!slot) {
         throw new ApiError(404, 'Slot not found');
+    }
+
+    const doctorId = await getDoctorIdByUserId(userId);
+    if (slot.doctorId.toString() !== doctorId.toString()) {
+        throw new ApiError(403, 'You can only update your own availability slots');
     }
 
     const { startTime, endTime } = data;
@@ -138,32 +244,74 @@ const updateAvailabilitySlot = async (slotId, data) => {
 };
 
 /**
- * Delete an availability slot.
+ * Delete an availability slot (verifies ownership).
  */
-const deleteAvailabilitySlot = async (slotId) => {
-    const slot = await Availability.findByIdAndDelete(slotId);
+const deleteAvailabilitySlot = async (userId, slotId) => {
+    const slot = await Availability.findById(slotId);
     if (!slot) {
         throw new ApiError(404, 'Slot not found');
     }
-    return slot;
+
+    const doctorId = await getDoctorIdByUserId(userId);
+    if (slot.doctorId.toString() !== doctorId.toString()) {
+        throw new ApiError(403, 'You can only delete your own availability slots');
+    }
+
+    await Availability.findByIdAndDelete(slotId);
 };
 
 /**
  * Get available slots for a doctor on a specific date,
- * subtracting already-booked appointments.
+ * subtracting already-booked appointments (SRS FR-PAT-02).
  */
 const getAvailableSlots = async (doctorId, date) => {
     const requestedDate = new Date(date);
+    if (isNaN(requestedDate.getTime())) {
+        throw new ApiError(400, 'Invalid date format');
+    }
+
     const dayOfWeek = requestedDate.getDay();
 
+    // 1. Fetch doctor's availability for this day of week
     const slots = await Availability.find({ doctorId, dayOfWeek }).sort({ startTime: 1 });
 
-    return slots;
+    // 2. Fetch already-booked appointments for this doctor on this date
+    const dayStart = new Date(requestedDate);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(requestedDate);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const bookedAppointments = await Appointment.find({
+        doctorId,
+        date: { $gte: dayStart, $lte: dayEnd },
+        status: { $nin: [APPOINTMENT_STATUS.CANCELLED, APPOINTMENT_STATUS.REJECTED] },
+    }).select('startTime endTime');
+
+    // 3. Subtract booked slots from available slots
+    const toMinutes = (time) => {
+        const [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
+    };
+
+    return slots.filter((slot) => {
+        const slotStart = toMinutes(slot.startTime);
+        const slotEnd = toMinutes(slot.endTime);
+
+        const isBooked = bookedAppointments.some((appt) => {
+            const apptStart = toMinutes(appt.startTime);
+            const apptEnd = toMinutes(appt.endTime);
+            return apptStart < slotEnd && apptEnd > slotStart;
+        });
+
+        return !isBooked;
+    });
 };
 
 export {
+    getProfile,
     getAllDoctors,
     getDoctorById,
+    getDoctorIdByUserId,
     updateProfile,
     getAvailability,
     setAvailability,
