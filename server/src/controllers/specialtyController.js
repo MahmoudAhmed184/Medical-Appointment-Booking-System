@@ -1,14 +1,8 @@
-import Specialty from '../models/Specialty.js';
 import catchAsync from '../utils/catchAsync.js';
-import ApiError from '../utils/ApiError.js';
+import * as specialtyService from '../services/specialtyService.js';
 
-/**
- * @desc    Get all specialties
- * @route   GET /api/specialties
- * @access  Public
- */
 const getAllSpecialties = catchAsync(async (req, res) => {
-    const specialties = await Specialty.find().sort({ name: 1 });
+    const specialties = await specialtyService.getAllSpecialties();
 
     res.status(200).json({
         success: true,
@@ -16,17 +10,8 @@ const getAllSpecialties = catchAsync(async (req, res) => {
     });
 });
 
-/**
- * @desc    Get specialty by ID
- * @route   GET /api/specialties/:id
- * @access  Public
- */
 const getSpecialtyById = catchAsync(async (req, res) => {
-    const specialty = await Specialty.findById(req.params.id);
-
-    if (!specialty) {
-        throw new ApiError(404, 'Specialty not found');
-    }
+    const specialty = await specialtyService.getSpecialtyById(req.params.id);
 
     res.status(200).json({
         success: true,
@@ -34,15 +19,8 @@ const getSpecialtyById = catchAsync(async (req, res) => {
     });
 });
 
-/**
- * @desc    Create a new specialty
- * @route   POST /api/specialties
- * @access  Admin
- */
 const createSpecialty = catchAsync(async (req, res) => {
-    const { name, description } = req.body;
-
-    const specialty = await Specialty.create({ name, description });
+    const specialty = await specialtyService.createSpecialty(req.body);
 
     res.status(201).json({
         success: true,
@@ -51,23 +29,8 @@ const createSpecialty = catchAsync(async (req, res) => {
     });
 });
 
-/**
- * @desc    Update a specialty
- * @route   PUT /api/specialties/:id
- * @access  Admin
- */
 const updateSpecialty = catchAsync(async (req, res) => {
-    const { name, description } = req.body;
-
-    const specialty = await Specialty.findByIdAndUpdate(
-        req.params.id,
-        { name, description },
-        { new: true, runValidators: true }
-    );
-
-    if (!specialty) {
-        throw new ApiError(404, 'Specialty not found');
-    }
+    const specialty = await specialtyService.updateSpecialty(req.params.id, req.body);
 
     res.status(200).json({
         success: true,
@@ -76,17 +39,8 @@ const updateSpecialty = catchAsync(async (req, res) => {
     });
 });
 
-/**
- * @desc    Delete a specialty
- * @route   DELETE /api/specialties/:id
- * @access  Admin
- */
 const deleteSpecialty = catchAsync(async (req, res) => {
-    const specialty = await Specialty.findByIdAndDelete(req.params.id);
-
-    if (!specialty) {
-        throw new ApiError(404, 'Specialty not found');
-    }
+    await specialtyService.deleteSpecialty(req.params.id);
 
     res.status(200).json({
         success: true,

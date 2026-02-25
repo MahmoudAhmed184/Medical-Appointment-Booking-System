@@ -1,17 +1,11 @@
 import Appointment from '../models/Appointment.js';
-import { APPOINTMENT_STATUS } from '../utils/constants.js';
+import Doctor from '../models/Doctor.js';
+import Patient from '../models/Patient.js';
+import Availability from '../models/Availability.js';
+import User from '../models/User.js';
+import ApiError from '../utils/ApiError.js';
+import { APPOINTMENT_STATUS, toMinutes, MAX_APPOINTMENT_DURATION_MINUTES } from '../utils/constants.js';
 
-// TODO: Implement bookAppointment service
-const bookAppointment = async (data) => { };
-
-// TODO: Implement getAppointments service
-const getAppointments = async (userId, role, query) => { };
-
-/**
- * Get all appointments with pagination and filtering (admin).
- * FR-ADMIN-05
- * Filters: status, doctorId, patientId, date range
- */
 const getAllAppointments = async (query) => {
     const {
         page = 1,
@@ -25,30 +19,16 @@ const getAllAppointments = async (query) => {
 
     const filter = {};
 
-    // Filter by status
     if (status && Object.values(APPOINTMENT_STATUS).includes(status)) {
         filter.status = status;
     }
+    if (doctorId) filter.doctorId = doctorId;
+    if (patientId) filter.patientId = patientId;
 
-    // Filter by doctor
-    if (doctorId) {
-        filter.doctorId = doctorId;
-    }
-
-    // Filter by patient
-    if (patientId) {
-        filter.patientId = patientId;
-    }
-
-    // Filter by date range
     if (startDate || endDate) {
         filter.date = {};
-        if (startDate) {
-            filter.date.$gte = new Date(startDate);
-        }
-        if (endDate) {
-            filter.date.$lte = new Date(endDate);
-        }
+        if (startDate) filter.date.$gte = new Date(startDate);
+        if (endDate) filter.date.$lte = new Date(endDate);
     }
 
     const pageNum = Math.max(1, parseInt(page));
@@ -58,19 +38,20 @@ const getAllAppointments = async (query) => {
     const [appointments, totalItems] = await Promise.all([
         Appointment.find(filter)
             .populate({
-                path: 'patient',
-                populate: { path: 'user', select: 'name email' },
+                path: 'patientId',
+                populate: { path: 'userId', select: 'name email' },
             })
             .populate({
-                path: 'doctor',
+                path: 'doctorId',
                 populate: [
-                    { path: 'user', select: 'name email' },
-                    { path: 'specialty', select: 'name' },
+                    { path: 'userId', select: 'name email' },
+                    { path: 'specialtyId', select: 'name' },
                 ],
             })
             .sort({ date: -1, startTime: -1 })
             .skip(skip)
-            .limit(limitNum),
+            .limit(limitNum)
+            .lean(),
         Appointment.countDocuments(filter),
     ]);
 
@@ -85,24 +66,421 @@ const getAllAppointments = async (query) => {
     };
 };
 
-// TODO: Implement getAppointmentById service
-const getAppointmentById = async (id) => { };
+const getAppointmentById = async (appointmentId, requestingUser) => {
+    const appointment = await Appointment.findById(appointmentId)
+        .populate({
+            path: 'patientId',
+            populate: { path: 'userId', select: 'name email' },
+        })
+        .populate({
+            path: 'doctorId',
+            populate: [
+                { path: 'userId', select: 'name email' },
+                { path: 'specialtyId', select: 'name' },
+            ],
+        });
 
-// TODO: Implement updateStatus service
-const updateStatus = async (id, status) => { };
+    if (!appointment) {
+        throw new ApiError(404, 'Appointment not found');
+    }
 
-// TODO: Implement reschedule service
-const reschedule = async (id, data) => { };
+    if (requestingUser.role !== 'admin') {
+        const isDoctor = appointment.doctorId?.userId?._id?.toString() === requestingUser._id.toString();
+        const isPatient = appointment.patientId?.userId?._id?.toString() === requestingUser._id.toString();
+        if (!isDoctor && !isPatient) {
+            throw new ApiError(403, 'You are not authorized to view this appointment');
+        }
+    }
 
-// TODO: Implement addNotes service
-const addNotes = async (id, notes) => { };
+    return appointment;
+};
+
+const findAndVerifyDoctorOwnership = async (appointmentId, userId) => {
+    const appointment = await Appointment.findById(appointmentId);
+    if (!appointment) {
+        throw new ApiError(404, 'Appointment not found');
+    }
+
+    const doctor = await Doctor.findOne({ userId });
+    if (!doctor || appointment.doctorId.toString() !== doctor._id.toString()) {
+        throw new ApiError(403, 'You can only manage your own appointments');
+    }
+
+    return appointment;
+};
+
+const findAndVerifyPatientOwnership = async (appointmentId, userId) => {
+    const appointment = await Appointment.findById(appointmentId);
+    if (!appointment) {
+        throw new ApiError(404, 'Appointment not found');
+    }
+
+    const patient = await Patient.findOne({ userId });
+    if (!patient || appointment.patientId.toString() !== patient._id.toString()) {
+        throw new ApiError(403, 'You can only manage your own appointments');
+    }
+
+    return { appointment, patient };
+};
+
+const approveAppointment = async (appointmentId, userId) => {
+    const appointment = await findAndVerifyDoctorOwnership(appointmentId, userId);
+
+    if (appointment.status !== APPOINTMENT_STATUS.PENDING) {
+        throw new ApiError(400, `Cannot approve an appointment with status "${appointment.status}". Only pending appointments can be approved.`);
+    }
+
+    appointment.status = APPOINTMENT_STATUS.CONFIRMED;
+    await appointment.save();
+    return appointment;
+};
+
+const rejectAppointment = async (appointmentId, userId) => {
+    const appointment = await findAndVerifyDoctorOwnership(appointmentId, userId);
+
+    if (appointment.status !== APPOINTMENT_STATUS.PENDING) {
+        throw new ApiError(400, `Cannot reject an appointment with status "${appointment.status}". Only pending appointments can be rejected.`);
+    }
+
+    appointment.status = APPOINTMENT_STATUS.REJECTED;
+    await appointment.save();
+    return appointment;
+};
+
+const completeAppointment = async (appointmentId, userId) => {
+    const appointment = await findAndVerifyDoctorOwnership(appointmentId, userId);
+
+    if (appointment.status !== APPOINTMENT_STATUS.CONFIRMED) {
+        throw new ApiError(400, `Cannot complete an appointment with status "${appointment.status}". Only confirmed appointments can be completed.`);
+    }
+
+    appointment.status = APPOINTMENT_STATUS.COMPLETED;
+    await appointment.save();
+    return appointment;
+};
+
+const getDoctorAppointments = async (userId, query = {}) => {
+    const doctor = await Doctor.findOne({ userId });
+    if (!doctor) {
+        throw new ApiError(404, 'Doctor profile not found');
+    }
+
+    const { status, startDate, endDate } = query;
+    const filter = { doctorId: doctor._id };
+
+    if (status && Object.values(APPOINTMENT_STATUS).includes(status)) {
+        filter.status = status;
+    }
+
+    if (startDate || endDate) {
+        filter.date = {};
+        if (startDate) filter.date.$gte = new Date(startDate);
+        if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    return Appointment.find(filter)
+        .populate({
+            path: 'patientId',
+            populate: { path: 'userId', select: 'name email' },
+        })
+        .sort({ date: -1, startTime: -1 });
+};
+
+const addNotes = async (appointmentId, userId, notes) => {
+    if (!notes || typeof notes !== 'string') {
+        throw new ApiError(400, 'Notes field is required and must be a string');
+    }
+
+    const appointment = await findAndVerifyDoctorOwnership(appointmentId, userId);
+
+    appointment.notes = notes;
+    await appointment.save();
+    return appointment;
+};
+
+const bookAppointment = async (userId, { doctorId, date, startTime, endTime, reason }) => {
+    const patient = await Patient.findOne({ userId });
+    if (!patient) {
+        throw new ApiError(404, 'Patient profile not found');
+    }
+
+    const timeRegex = /^([0-1]\d|2[0-3]):[0-5]\d$/;
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+        throw new ApiError(400, 'startTime and endTime must be in HH:mm format');
+    }
+
+    const dateMatch = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(date);
+    if (!dateMatch) {
+        throw new ApiError(400, 'Invalid appointment date format (YYYY-MM-DD required)');
+    }
+
+    const year = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const day = Number(dateMatch[3]);
+
+    const appointmentDay = new Date(year, month - 1, day);
+    if (
+        Number.isNaN(appointmentDay.getTime()) ||
+        appointmentDay.getFullYear() !== year ||
+        appointmentDay.getMonth() !== month - 1 ||
+        appointmentDay.getDate() !== day
+    ) {
+        throw new ApiError(400, 'Invalid appointment date');
+    }
+
+    const startMinutes = toMinutes(startTime);
+    const endMinutes = toMinutes(endTime);
+
+    if (endMinutes <= startMinutes) {
+        throw new ApiError(400, 'endTime must be greater than startTime');
+    }
+
+    if (endMinutes - startMinutes > MAX_APPOINTMENT_DURATION_MINUTES) {
+        throw new ApiError(400, 'Appointment duration cannot exceed 1 hour');
+    }
+
+    const doctor = await Doctor.findById(doctorId).populate('userId', 'name');
+    if (!doctor) {
+        throw new ApiError(404, 'Doctor not found');
+    }
+
+    const doctorUser = await User.findById(doctor.userId._id || doctor.userId);
+    if (!doctorUser || !doctorUser.isApproved || doctorUser.isBlocked) {
+        throw new ApiError(400, 'This doctor is not available for appointments');
+    }
+
+    const now = new Date();
+    const startDateTime = new Date(appointmentDay);
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    startDateTime.setHours(startHour, startMinute, 0, 0);
+
+    if (startDateTime < now) {
+        throw new ApiError(400, 'Cannot book an appointment in the past');
+    }
+
+    const dayOfWeek = appointmentDay.getDay();
+    const doctorAvailabilities = await Availability.find({ doctorId, dayOfWeek }).select('startTime endTime');
+
+    const isWithinAvailability = doctorAvailabilities.some((slot) => {
+        const slotStart = toMinutes(slot.startTime);
+        const slotEnd = toMinutes(slot.endTime);
+        return startMinutes >= slotStart && endMinutes <= slotEnd;
+    });
+
+    if (!isWithinAvailability) {
+        throw new ApiError(400, 'Doctor is not available at this date/time');
+    }
+
+    const dayStart = new Date(appointmentDay);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(appointmentDay);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const conflicting = await Appointment.findOne({
+        doctorId,
+        date: { $gte: dayStart, $lte: dayEnd },
+        status: { $nin: [APPOINTMENT_STATUS.CANCELLED, APPOINTMENT_STATUS.REJECTED] },
+        startTime: { $lt: endTime },
+        endTime: { $gt: startTime },
+    });
+
+    if (conflicting) {
+        throw new ApiError(400, 'This time slot is already booked');
+    }
+
+    const appointment = await Appointment.create({
+        doctorId,
+        patientId: patient._id,
+        date: dayStart,
+        startTime,
+        endTime,
+        reason,
+        status: APPOINTMENT_STATUS.PENDING,
+    });
+
+    return { appointment, doctorName: doctor.userId?.name };
+};
+
+const getPatientAppointments = async (userId, query = {}) => {
+    const patient = await Patient.findOne({ userId });
+    if (!patient) {
+        throw new ApiError(404, 'Patient profile not found');
+    }
+
+    const { page = 1, limit = 10 } = query;
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.max(1, Math.min(100, Number(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = { patientId: patient._id };
+    const totalItems = await Appointment.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limitNum);
+
+    const appointments = await Appointment.find(filter)
+        .populate({
+            path: 'doctorId',
+            populate: [
+                { path: 'userId', select: 'name email' },
+                { path: 'specialtyId', select: 'name' },
+            ],
+        })
+        .sort({ date: -1, startTime: -1 })
+        .skip(skip)
+        .limit(limitNum);
+
+    return {
+        appointments,
+        pagination: { page: pageNum, limit: limitNum, totalItems, totalPages },
+    };
+};
+
+const cancelPatientAppointment = async (appointmentId, userId) => {
+    const patient = await Patient.findOne({ userId });
+    if (!patient) {
+        throw new ApiError(404, 'Patient profile not found');
+    }
+
+    const appointment = await Appointment.findOne({
+        _id: appointmentId,
+        patientId: patient._id,
+    });
+
+    if (!appointment) {
+        throw new ApiError(404, 'Appointment not found');
+    }
+
+    if (appointment.status === APPOINTMENT_STATUS.CANCELLED) {
+        throw new ApiError(400, 'Already cancelled');
+    }
+
+    if (![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.CONFIRMED].includes(appointment.status)) {
+        throw new ApiError(400, `Cannot cancel an appointment with status "${appointment.status}"`);
+    }
+
+    appointment.status = APPOINTMENT_STATUS.CANCELLED;
+    await appointment.save();
+    return appointment;
+};
+
+const reschedulePatientAppointment = async (appointmentId, userId, data) => {
+    const patient = await Patient.findOne({ userId });
+    if (!patient) {
+        throw new ApiError(404, 'Patient profile not found');
+    }
+
+    const appointment = await Appointment.findOne({
+        _id: appointmentId,
+        patientId: patient._id,
+    });
+
+    if (!appointment) {
+        throw new ApiError(404, 'Appointment not found');
+    }
+
+    const { date, startTime, endTime } = data;
+
+    if (![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.CONFIRMED].includes(appointment.status)) {
+        throw new ApiError(400, `Cannot reschedule an appointment with status "${appointment.status}"`);
+    }
+
+    const timeRegex = /^([0-1]\d|2[0-3]):[0-5]\d$/;
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+        throw new ApiError(400, 'startTime and endTime must be in HH:mm format');
+    }
+
+    const dateMatch = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(date);
+    if (!dateMatch) {
+        throw new ApiError(400, 'Invalid appointment date format (YYYY-MM-DD required)');
+    }
+
+    const year = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const day = Number(dateMatch[3]);
+
+    const appointmentDay = new Date(year, month - 1, day);
+    if (
+        Number.isNaN(appointmentDay.getTime()) ||
+        appointmentDay.getFullYear() !== year ||
+        appointmentDay.getMonth() !== month - 1 ||
+        appointmentDay.getDate() !== day
+    ) {
+        throw new ApiError(400, 'Invalid appointment date');
+    }
+
+    const startMinutes = toMinutes(startTime);
+    const endMinutes = toMinutes(endTime);
+    if (endMinutes <= startMinutes) {
+        throw new ApiError(400, 'endTime must be greater than startTime');
+    }
+
+    if (endMinutes - startMinutes > MAX_APPOINTMENT_DURATION_MINUTES) {
+        throw new ApiError(400, 'Appointment duration cannot exceed 1 hour');
+    }
+
+    const now = new Date();
+    const startDateTime = new Date(appointmentDay);
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    startDateTime.setHours(startHour, startMinute, 0, 0);
+
+    if (startDateTime < now) {
+        throw new ApiError(400, 'Cannot reschedule to a past time');
+    }
+
+    const dayOfWeek = appointmentDay.getDay();
+    const doctorAvailabilities = await Availability.find({
+        doctorId: appointment.doctorId,
+        dayOfWeek,
+    }).select('startTime endTime');
+
+    const isWithinAvailability = doctorAvailabilities.some((slot) => {
+        const slotStart = toMinutes(slot.startTime);
+        const slotEnd = toMinutes(slot.endTime);
+        return startMinutes >= slotStart && endMinutes <= slotEnd;
+    });
+
+    if (!isWithinAvailability) {
+        throw new ApiError(400, 'Doctor is not available at this date/time');
+    }
+
+    const dayStart = new Date(appointmentDay);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(appointmentDay);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const conflicting = await Appointment.findOne({
+        _id: { $ne: appointment._id },
+        doctorId: appointment.doctorId,
+        date: { $gte: dayStart, $lte: dayEnd },
+        status: { $nin: [APPOINTMENT_STATUS.CANCELLED, APPOINTMENT_STATUS.REJECTED] },
+        startTime: { $lt: endTime },
+        endTime: { $gt: startTime },
+    });
+
+    if (conflicting) {
+        throw new ApiError(400, 'This time slot is already booked');
+    }
+
+    appointment.date = dayStart;
+    appointment.startTime = startTime;
+    appointment.endTime = endTime;
+    appointment.status = APPOINTMENT_STATUS.PENDING;
+    await appointment.save();
+
+    const doctor = await Doctor.findById(appointment.doctorId).populate('userId', 'name');
+
+    return { appointment, doctorName: doctor?.userId?.name };
+};
 
 export {
-    bookAppointment,
-    getAppointments,
     getAllAppointments,
     getAppointmentById,
-    updateStatus,
-    reschedule,
+    approveAppointment,
+    rejectAppointment,
+    completeAppointment,
     addNotes,
+    bookAppointment,
+    getDoctorAppointments,
+    getPatientAppointments,
+    cancelPatientAppointment,
+    reschedulePatientAppointment,
 };

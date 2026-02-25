@@ -22,7 +22,6 @@ const patientSchema = new mongoose.Schema(
             required: [true, 'Date of birth is required'],
             validate: {
                 validator: function (value) {
-                    // Date of birth must be in the past
                     return value < new Date();
                 },
                 message: 'Date of birth must be in the past',
@@ -47,10 +46,6 @@ const patientSchema = new mongoose.Schema(
     }
 );
 
-// Index for faster lookups
-//patientSchema.index({ userId: 1 });
-
-// Virtual populate for user details
 patientSchema.virtual('user', {
     ref: 'User',
     localField: 'userId',

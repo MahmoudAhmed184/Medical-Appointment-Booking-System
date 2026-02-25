@@ -1,11 +1,6 @@
 import catchAsync from '../utils/catchAsync.js';
 import * as userService from '../services/userService.js';
 
-/**
- * @desc    Get all users (paginated, filtered)
- * @route   GET /api/users
- * @access  Admin
- */
 const getAllUsers = catchAsync(async (req, res) => {
     const { users, pagination } = await userService.getAllUsers(req.query);
 
@@ -16,11 +11,6 @@ const getAllUsers = catchAsync(async (req, res) => {
     });
 });
 
-/**
- * @desc    Get user by ID
- * @route   GET /api/users/:id
- * @access  Admin
- */
 const getUserById = catchAsync(async (req, res) => {
     const user = await userService.getUserById(req.params.id);
 
@@ -30,11 +20,6 @@ const getUserById = catchAsync(async (req, res) => {
     });
 });
 
-/**
- * @desc    Approve a user (doctor)
- * @route   PATCH /api/users/:id/approve
- * @access  Admin
- */
 const approveUser = catchAsync(async (req, res) => {
     const user = await userService.approveUser(req.params.id);
 
@@ -45,11 +30,6 @@ const approveUser = catchAsync(async (req, res) => {
     });
 });
 
-/**
- * @desc    Block/unblock a user
- * @route   PATCH /api/users/:id/block
- * @access  Admin
- */
 const blockUser = catchAsync(async (req, res) => {
     const user = await userService.toggleBlockUser(req.params.id);
 
@@ -60,11 +40,6 @@ const blockUser = catchAsync(async (req, res) => {
     });
 });
 
-/**
- * @desc    Delete a user
- * @route   DELETE /api/users/:id
- * @access  Admin
- */
 const deleteUser = catchAsync(async (req, res) => {
     await userService.deleteUser(req.params.id);
 

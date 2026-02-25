@@ -1,7 +1,3 @@
-/**
- * Role-based authorization middleware factory.
- * Usage: authorize('admin', 'doctor')
- */
 import ApiError from '../utils/ApiError.js';
 
 const authorize = (...allowedRoles) => {

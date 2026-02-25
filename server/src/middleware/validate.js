@@ -1,25 +1,25 @@
 import ApiError from '../utils/ApiError.js';
 
 const validate = (schema) => {
-    return (req, res, next) => {
-        const { error } = schema.validate(req.body, {
-            abortEarly: false,
-            stripUnknown: false,
-            allowUnknown: false,
-            convert: true,
-        });
+  return (req, res, next) => {
+    const { error } = schema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: false,
+      allowUnknown: false,
+      convert: true,
+    });
 
-        if (error) {
-            const details = error.details.map((detail) => ({
-                field: detail.path.join('.'),
-                message: detail.message.replace(/"/g, ''),
-            }));
+    if (error) {
+      const details = error.details.map((detail) => ({
+        field: detail.path.join('.'),
+        message: detail.message.replace(/"/g, ''),
+      }));
 
-            throw new ApiError(400, 'Validation failed', details);
-        }
+      return next(new ApiError(400, 'Validation failed', details));
+    }
 
-        next();
-    };
+    next();
+  };
 };
 
 export default validate;

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import { ROLES } from '../utils/constants.js';
 
 const userSchema = new mongoose.Schema(
@@ -25,7 +26,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Password is required'],
             minlength: [6, 'Password must be at least 6 characters long'],
-            select: false, // Don't return password in queries by default
+            select: false,
         },
         role: {
             type: String,
@@ -45,37 +46,27 @@ const userSchema = new mongoose.Schema(
         },
     },
     {
-        timestamps: true, // Adds createdAt and updatedAt
+        timestamps: true,
     }
 );
 
-
-// Index for faster email lookups
-//userSchema.index({ email: 1 });
-
-// Pre-save hook for password hashing
 userSchema.pre('save', async function (next) {
-    // Only hash the password if it has been modified (or is new)
     if (!this.isModified('password')) {
         return next();
     }
 
     try {
-        const bcrypt = await import('bcryptjs');
-        const salt = await bcrypt.default.genSalt(10);
-        this.password = await bcrypt.default.hash(this.password, salt);
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
         next();
     } catch (error) {
         next(error);
     }
 });
 
-// Instance method to compare password for login
 userSchema.methods.comparePassword = async function (candidatePassword) {
-    const bcrypt = await import('bcryptjs');
-    return await bcrypt.default.compare(candidatePassword, this.password);
+    return bcrypt.compare(candidatePassword, this.password);
 };
-
 
 const User = mongoose.model('User', userSchema);
 

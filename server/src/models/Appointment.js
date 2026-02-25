@@ -18,7 +18,6 @@ const appointmentSchema = new mongoose.Schema(
             required: [true, 'Appointment date is required'],
             validate: {
                 validator: function (value) {
-                    
                     if (this.isNew) {
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
@@ -52,7 +51,7 @@ const appointmentSchema = new mongoose.Schema(
             required: [true, 'Status is required'],
             enum: {
                 values: Object.values(APPOINTMENT_STATUS),
-                message: 'Status must be pending, confirmed, completed, or cancelled',
+                message: 'Status must be pending, confirmed, rejected, completed, or cancelled',
             },
             default: APPOINTMENT_STATUS.PENDING,
         },
@@ -76,7 +75,6 @@ const appointmentSchema = new mongoose.Schema(
     }
 );
 
-// Virtual populate for patient details
 appointmentSchema.virtual('patient', {
     ref: 'Patient',
     localField: 'patientId',
@@ -84,7 +82,6 @@ appointmentSchema.virtual('patient', {
     justOne: true,
 });
 
-// Virtual populate for doctor details
 appointmentSchema.virtual('doctor', {
     ref: 'Doctor',
     localField: 'doctorId',
@@ -92,14 +89,9 @@ appointmentSchema.virtual('doctor', {
     justOne: true,
 });
 
-
-// Compound unique index to prevent double-booking (same doctor, same date, same time)
 appointmentSchema.index({ doctorId: 1, date: 1, startTime: 1 }, { unique: true });
-
-// Additional indexes for common queries
 appointmentSchema.index({ patientId: 1, date: 1 });
 appointmentSchema.index({ status: 1 });
-
 
 const Appointment = mongoose.model('Appointment', appointmentSchema);
 

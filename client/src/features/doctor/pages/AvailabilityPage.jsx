@@ -1,3 +1,281 @@
-import { Typography } from '@mui/material';
-const AvailabilityPage = () => <Typography variant="h4">Manage Availability</Typography>;
-export default AvailabilityPage;
+import { useState } from 'react';
+import useAvailability from '../hooks/useAvailability';
+
+const DAYS = [
+    { value: 0, label: 'Sunday' },
+    { value: 1, label: 'Monday' },
+    { value: 2, label: 'Tuesday' },
+    { value: 3, label: 'Wednesday' },
+    { value: 4, label: 'Thursday' },
+    { value: 5, label: 'Friday' },
+    { value: 6, label: 'Saturday' },
+];
+
+const DAY_COLORS = {
+    0: 'bg-red-500',
+    1: 'bg-blue-500',
+    2: 'bg-green-500',
+    3: 'bg-orange-500',
+    4: 'bg-purple-500',
+    5: 'bg-cyan-500',
+    6: 'bg-pink-500',
+};
+
+export default function AvailabilityPage() {
+    const { slots, loading, error, addSlot, updateSlot, removeSlot } = useAvailability();
+    const [showForm, setShowForm] = useState(false);
+    const [editingSlot, setEditingSlot] = useState(null);
+    const [formData, setFormData] = useState({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' });
+    const [formError, setFormError] = useState('');
+    const [toast, setToast] = useState(null);
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+    const user = (() => {
+        try {
+            return JSON.parse(localStorage.getItem('user')) || {};
+        } catch {
+            return {};
+        }
+    })();
+
+    const showToast = (message, type = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 4000);
+    };
+
+    const handleOpenAdd = () => {
+        setEditingSlot(null);
+        setFormData({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' });
+        setFormError('');
+        setShowForm(true);
+    };
+
+    const handleOpenEdit = (slot) => {
+        setEditingSlot(slot);
+        setFormData({ dayOfWeek: slot.dayOfWeek, startTime: slot.startTime, endTime: slot.endTime });
+        setFormError('');
+        setShowForm(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!formData.startTime || !formData.endTime) {
+            setFormError('All fields are required');
+            return;
+        }
+        const [sh, sm] = formData.startTime.split(':').map(Number);
+        const [eh, em] = formData.endTime.split(':').map(Number);
+        if (eh * 60 + em <= sh * 60 + sm) {
+            setFormError('End time must be after start time');
+            return;
+        }
+
+        let result;
+        if (editingSlot) {
+            result = await updateSlot(editingSlot._id, { startTime: formData.startTime, endTime: formData.endTime });
+        } else {
+            result = await addSlot({
+                dayOfWeek: formData.dayOfWeek,
+                startTime: formData.startTime,
+                endTime: formData.endTime,
+            });
+        }
+
+        if (result.success) {
+            setShowForm(false);
+            showToast(editingSlot ? 'Slot updated successfully' : 'Slot added successfully');
+        } else {
+            setFormError(result.message);
+        }
+    };
+
+    const handleDelete = async () => {
+        const result = await removeSlot(deleteConfirm);
+        setDeleteConfirm(null);
+        showToast(result.success ? 'Slot deleted' : result.message, result.success ? 'success' : 'error');
+    };
+
+    const slotsByDay = DAYS
+        .map((day) => ({
+            ...day,
+            slots: slots.filter((s) => s.dayOfWeek === day.value).sort((a, b) => a.startTime.localeCompare(b.startTime)),
+        }))
+        .filter((day) => day.slots.length > 0);
+
+    return (
+        <div>
+            {/* Header */}
+            <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Manage Availability</h1>
+                    <p className="mt-1 text-gray-500">Set your weekly schedule so patients can book appointments.</p>
+                </div>
+                <button
+                    onClick={handleOpenAdd}
+                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors cursor-pointer"
+                >
+                    <span className="text-lg">+</span> Add Time Slot
+                </button>
+            </div>
+
+            {error && (
+                <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">{error}</div>
+            )}
+
+            {/* Content */}
+            {loading ? (
+                <div className="flex justify-center py-16">
+                    <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                </div>
+            ) : slotsByDay.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-gray-100 text-center py-16 px-6">
+                    <span className="text-6xl block mb-4">🕐</span>
+                    <h3 className="text-lg font-semibold text-gray-500 mb-2">No availability slots set</h3>
+                    <p className="text-gray-400 text-sm mb-6">Add your first time slot to start accepting appointments.</p>
+                    <button
+                        onClick={handleOpenAdd}
+                        className="inline-flex items-center gap-2 border border-blue-300 text-blue-600 hover:bg-blue-50 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors cursor-pointer"
+                    >
+                        + Add Time Slot
+                    </button>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {slotsByDay.map((day) => (
+                        <div key={day.value} className="bg-white rounded-2xl border border-gray-100 p-5">
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className={`${DAY_COLORS[day.value]} text-white text-sm font-semibold px-3 py-1 rounded-full`}>
+                                    {day.label}
+                                </span>
+                                <span className="text-sm text-gray-400">{day.slots.length} {day.slots.length === 1 ? 'slot' : 'slots'}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                                {day.slots.map((slot) => (
+                                    <div
+                                        key={slot._id}
+                                        className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 bg-white hover:border-blue-300 hover:shadow-md transition-all duration-200 group"
+                                    >
+                                        <span className="text-blue-500">🕐</span>
+                                        <span className="text-sm font-medium text-gray-700">{slot.startTime} — {slot.endTime}</span>
+                                        <button
+                                            onClick={() => handleOpenEdit(slot)}
+                                            className="ml-1 p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                                            title="Edit"
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button
+                                            onClick={() => setDeleteConfirm(slot._id)}
+                                            className="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                                            title="Delete"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Add/Edit Modal */}
+            {showForm && (
+                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <div className="px-6 py-4 border-b border-gray-100">
+                            <h2 className="text-lg font-bold text-gray-900">
+                                {editingSlot ? 'Edit Time Slot' : 'Add New Time Slot'}
+                            </h2>
+                        </div>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            {formError && (
+                                <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">{formError}</div>
+                            )}
+                            {!editingSlot && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Day of Week</label>
+                                    <select
+                                        value={formData.dayOfWeek}
+                                        onChange={(e) => setFormData({ ...formData, dayOfWeek: Number(e.target.value) })}
+                                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    >
+                                        {DAYS.map((d) => (
+                                            <option key={d.value} value={d.value}>{d.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                                <input
+                                    type="time"
+                                    value={formData.startTime}
+                                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                                <input
+                                    type="time"
+                                    value={formData.endTime}
+                                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowForm(false)}
+                                    className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors cursor-pointer"
+                                >
+                                    {editingSlot ? 'Update' : 'Add Slot'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirm Modal */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Time Slot?</h3>
+                        <p className="text-sm text-gray-500 mb-6">Are you sure you want to delete this availability slot? This action cannot be undone.</p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setDeleteConfirm(null)}
+                                className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors cursor-pointer"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast */}
+            {toast && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+                    <div className={`px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'}`}>
+                        {toast.message}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

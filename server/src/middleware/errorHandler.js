@@ -29,7 +29,9 @@ const errorHandler = (err, req, res, next) => {
         message = 'Token has expired';
     }
 
-    if (process.env.NODE_ENV === 'development') {
+    if (statusCode >= 500) {
+        console.error('Server Error:', err);
+    } else if (process.env.NODE_ENV === 'development') {
         console.error('Error:', err);
     }
 

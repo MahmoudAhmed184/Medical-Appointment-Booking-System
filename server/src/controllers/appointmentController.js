@@ -1,57 +1,89 @@
 import catchAsync from '../utils/catchAsync.js';
 import * as appointmentService from '../services/appointmentService.js';
 
-// TODO: Implement bookAppointment handler
-const bookAppointment = (req, res) => { };
+const listAppointments = catchAsync(async (req, res) => {
+    const data = await appointmentService.getDoctorAppointments(req.user._id, req.query);
 
-// TODO: Implement getMyAppointments handler
-const getMyAppointments = (req, res) => { };
+    res.status(200).json({ success: true, data });
+});
 
-/**
- * @desc    Get all appointments (paginated, filtered) — Admin view
- * @route   GET /api/appointments/all
- * @access  Admin
- */
 const getAllAppointments = catchAsync(async (req, res) => {
     const { appointments, pagination } = await appointmentService.getAllAppointments(req.query);
 
-    res.status(200).json({
-        success: true,
-        data: appointments,
-        pagination,
-    });
+    res.status(200).json({ success: true, data: appointments, pagination });
 });
 
-// TODO: Implement getAppointmentById handler
-const getAppointmentById = (req, res) => { };
+/**
+ * @desc    Get appointments for the logged-in doctor
+ * @route   GET /api/appointments/doctor
+ * @access  Doctor
+ */
+const getDoctorAppointments = async (req, res) => {
+    try {
+        const Doctor = (await import('../models/Doctor.js')).default;
+        const doctor = await Doctor.findOne({ userId: req.user._id });
+        if (!doctor) {
+            return res.status(404).json({ success: false, message: 'Doctor profile not found' });
+        }
 
-// TODO: Implement approveAppointment handler
-const approveAppointment = (req, res) => { };
+        const appointments = await Appointment.find({ doctorId: doctor._id })
+            .populate({
+                path: 'patientId',
+                populate: { path: 'userId', select: 'name email' },
+            })
+            .populate({
+                path: 'doctorId',
+                populate: [
+                    { path: 'userId', select: 'name email' },
+                    { path: 'specialtyId', select: 'name' },
+                ],
+            })
+            .sort({ date: -1, startTime: -1 })
+            .lean();
 
-// TODO: Implement rejectAppointment handler
-const rejectAppointment = (req, res) => { };
+        res.status(200).json({ success: true, data: appointments });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 
-// TODO: Implement completeAppointment handler
-const completeAppointment = (req, res) => { };
+const getAppointmentById = catchAsync(async (req, res) => {
+    const data = await appointmentService.getAppointmentById(req.params.id, req.user);
 
-// TODO: Implement cancelAppointment handler
-const cancelAppointment = (req, res) => { };
+    res.status(200).json({ success: true, data });
+});
 
-// TODO: Implement rescheduleAppointment handler
-const rescheduleAppointment = (req, res) => { };
+const approveAppointment = catchAsync(async (req, res) => {
+    const data = await appointmentService.approveAppointment(req.params.id, req.user._id);
 
-// TODO: Implement addNotes handler
-const addNotes = (req, res) => { };
+    res.status(200).json({ success: true, data, message: 'Appointment approved successfully' });
+});
+
+const rejectAppointment = catchAsync(async (req, res) => {
+    const data = await appointmentService.rejectAppointment(req.params.id, req.user._id);
+
+    res.status(200).json({ success: true, data, message: 'Appointment rejected successfully' });
+});
+
+const completeAppointment = catchAsync(async (req, res) => {
+    const data = await appointmentService.completeAppointment(req.params.id, req.user._id);
+
+    res.status(200).json({ success: true, data, message: 'Appointment completed successfully' });
+});
+
+const addNotes = catchAsync(async (req, res) => {
+    const data = await appointmentService.addNotes(req.params.id, req.user._id, req.body.notes);
+
+    res.status(200).json({ success: true, data, message: 'Notes updated successfully' });
+});
 
 export {
-    bookAppointment,
-    getMyAppointments,
+    listAppointments,
     getAllAppointments,
+    getDoctorAppointments,
     getAppointmentById,
     approveAppointment,
     rejectAppointment,
     completeAppointment,
-    cancelAppointment,
-    rescheduleAppointment,
     addNotes,
 };

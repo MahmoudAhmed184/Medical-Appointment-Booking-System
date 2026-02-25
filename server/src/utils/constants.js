@@ -1,7 +1,3 @@
-/**
- * Application-wide constants and enums.
- */
-
 const ROLES = {
     ADMIN: 'admin',
     DOCTOR: 'doctor',
@@ -13,6 +9,7 @@ const APPOINTMENT_STATUS = {
     CONFIRMED: 'confirmed',
     COMPLETED: 'completed',
     CANCELLED: 'cancelled',
+    REJECTED: 'rejected',
 };
 
 const DAYS_OF_WEEK = {
@@ -25,8 +22,17 @@ const DAYS_OF_WEEK = {
     SATURDAY: 6,
 };
 
+const MAX_APPOINTMENT_DURATION_MINUTES = 60;
+
+const toMinutes = (time) => {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+};
+
 export {
     ROLES,
     APPOINTMENT_STATUS,
     DAYS_OF_WEEK,
+    MAX_APPOINTMENT_DURATION_MINUTES,
+    toMinutes,
 };

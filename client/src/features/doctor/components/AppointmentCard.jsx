@@ -1,3 +1,168 @@
-import { Typography } from '@mui/material';
-const AppointmentCard = () => <Typography>Appointment Card — TODO</Typography>;
+import { useState } from 'react';
+
+const STATUS_STYLES = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    confirmed: 'bg-green-100 text-green-800',
+    completed: 'bg-purple-100 text-purple-800',
+    cancelled: 'bg-gray-100 text-gray-600',
+    rejected: 'bg-red-100 text-red-800',
+};
+
+const BORDER_COLORS = {
+    pending: 'border-l-yellow-400',
+    confirmed: 'border-l-green-500',
+    completed: 'border-l-purple-500',
+    cancelled: 'border-l-gray-300',
+    rejected: 'border-l-red-500',
+};
+
+const AppointmentCard = ({ appointment, onApprove, onReject, onComplete, onSaveNotes }) => {
+    const [notesOpen, setNotesOpen] = useState(false);
+    const [notes, setNotes] = useState(appointment.notes || '');
+    const [showReason, setShowReason] = useState(false);
+
+    const patientName = appointment.patientId?.userId?.name || appointment.patient?.user?.name || 'Patient';
+    const patientEmail = appointment.patientId?.userId?.email || appointment.patient?.user?.email || '';
+    const statusStyle = STATUS_STYLES[appointment.status] || STATUS_STYLES.pending;
+    const borderColor = BORDER_COLORS[appointment.status] || 'border-l-gray-300';
+
+    const handleSaveNotes = async () => {
+        if (onSaveNotes) {
+            const result = await onSaveNotes(appointment._id, notes);
+            if (result?.success) setNotesOpen(false);
+        }
+    };
+
+    return (
+        <>
+            <div className={`bg-white rounded-2xl border border-gray-100 border-l-4 ${borderColor} p-5 mb-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200`}>
+                {/* Top: Patient + Status */}
+                <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold">
+                            {patientName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-gray-800">{patientName}</p>
+                            {patientEmail && <p className="text-xs text-gray-400">{patientEmail}</p>}
+                        </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusStyle}`}>
+                        {appointment.status}
+                    </span>
+                </div>
+
+                {/* Date & Time */}
+                <div className="flex gap-5 mb-3 flex-wrap text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                        📅 {appointment.date
+                            ? new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
+                            : '—'}
+                    </span>
+                    <span className="flex items-center gap-1">
+                        🕐 {appointment.startTime || '—'} — {appointment.endTime || '—'}
+                    </span>
+                </div>
+
+                {/* Reason (collapsible) */}
+                {appointment.reason && (
+                    <div className="mb-3">
+                        <button
+                            onClick={() => setShowReason(!showReason)}
+                            className="text-sm text-gray-500 font-medium flex items-center gap-1 cursor-pointer hover:text-gray-700"
+                        >
+                            Reason {showReason ? '▲' : '▼'}
+                        </button>
+                        {showReason && (
+                            <p className="text-sm text-gray-500 mt-1 pl-1">{appointment.reason}</p>
+                        )}
+                    </div>
+                )}
+
+                {/* Notes preview */}
+                {appointment.notes && (
+                    <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                        <p className="text-xs font-semibold text-gray-500 mb-1">Notes:</p>
+                        <p className="text-sm text-gray-600">{appointment.notes}</p>
+                    </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2 flex-wrap mt-2">
+                    {appointment.status === 'pending' && (
+                        <>
+                            <button
+                                onClick={() => onApprove?.(appointment._id)}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+                            >
+                                ✅ Approve
+                            </button>
+                            <button
+                                onClick={() => onReject?.(appointment._id)}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+                            >
+                                ❌ Reject
+                            </button>
+                        </>
+                    )}
+                    {appointment.status === 'confirmed' && (
+                        <button
+                            onClick={() => onComplete?.(appointment._id)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+                        >
+                            🏆 Mark Complete
+                        </button>
+                    )}
+                    {['pending', 'confirmed', 'completed'].includes(appointment.status) && (
+                        <button
+                            onClick={() => setNotesOpen(true)}
+                            className="p-2 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors cursor-pointer"
+                            title="Add / Edit Notes"
+                        >
+                            📝
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Notes Modal */}
+            {notesOpen && (
+                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setNotesOpen(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+                        <div className="px-6 py-4 border-b border-gray-100">
+                            <h2 className="text-lg font-bold text-gray-900">Appointment Notes</h2>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-sm text-gray-500 mb-3">
+                                Notes for {patientName}&apos;s appointment on {appointment.date ? new Date(appointment.date).toLocaleDateString() : '—'}
+                            </p>
+                            <textarea
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                rows={4}
+                                placeholder="Enter doctor notes here..."
+                                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                            />
+                            <div className="flex justify-end gap-3 mt-4">
+                                <button
+                                    onClick={() => setNotesOpen(false)}
+                                    className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveNotes}
+                                    className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors cursor-pointer"
+                                >
+                                    Save Notes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
 export default AppointmentCard;
