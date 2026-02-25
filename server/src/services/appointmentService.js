@@ -50,7 +50,8 @@ const getAllAppointments = async (query) => {
             })
             .sort({ date: -1, startTime: -1 })
             .skip(skip)
-            .limit(limitNum),
+            .limit(limitNum)
+            .lean(),
         Appointment.countDocuments(filter),
     ]);
 
