@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-const phonePattern = /^01\d{9}$/;
+const phonePattern = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
 
 const commonProfileFields = {
     name: Joi.string().trim().min(2).max(100).optional().messages({
