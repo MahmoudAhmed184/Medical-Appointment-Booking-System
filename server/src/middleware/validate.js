@@ -15,7 +15,7 @@ const validate = (schema) => {
         message: detail.message.replace(/"/g, ''),
       }));
 
-      throw new ApiError(400, 'Validation failed', details);
+      return next(new ApiError(400, 'Validation failed', details));
     }
 
     next();
