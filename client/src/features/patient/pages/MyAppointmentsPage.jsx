@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import {
   cancelAppointment,
@@ -7,6 +6,7 @@ import {
 } from '../../../store/slices/appointmentSlice';
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentList from '../components/AppointmentList';
+import PatientNavbar from '../components/PatientNavbar';
 import { getDoctorByIdApi, getPatientProfileApi } from '../services/patientApi';
 
 const TIME_STEP_MINUTES = 15;
@@ -163,8 +163,6 @@ export default function MyAppointmentsPage() {
     loadPatientNav();
   }, []);
 
-   const navigate =useNavigate();
-
   const mappedAppointments = appointments.map((item) => ({
     id: item._id,
     doctorName: item?.doctorId?.userId?.name || 'Doctor',
@@ -277,40 +275,11 @@ export default function MyAppointmentsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f7f8] dark:bg-[#101922] text-slate-800 dark:text-slate-100">
 
-      {/* NAVBAR */}
-      <nav className="sticky top-0 z-50 border-b bg-white dark:bg-[#1a2632]">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-          {/* LOGO */}
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg text-[#137fec] bg-[#137fec1a]">
-        <span className="material-icons-round">icon</span>
-      </div>
-      <span className="font-bold text-xl">MediBook</span>
-          </div>
-
-          {/* TABS */}
-          <div className="hidden md:flex gap-6 text-mx">
-            <span onClick={()=>navigate("/patient")}
-             className="hover:text-[#137fec] cursor-pointer">Find Doctors</span>
-            <span onClick={()=>navigate("/patient/appointments")}
-             className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">My Appointments</span>
-            <span onClick={()=>navigate("/patient/profile")} className="hover:text-[#137fec] cursor-pointer">Profile</span>
-          </div>
-
-          {/* PROFILE */}
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-slate-800 dark:text-slate-100">{patientNav.name}</span>
-            <img
-              src={patientNav.image || PATIENT_DEFAULT_AVATAR}
-              alt="Profile"
-              className="w-10 h-10 rounded-full object-cover"
-            />
-            
-          </div>
-
-        </div>
-      </nav>
+      <PatientNavbar
+        activeTab="appointments"
+        patientName={patientNav.name}
+        patientImage={patientNav.image || PATIENT_DEFAULT_AVATAR}
+      />
 
       {/* MAIN */}
       <main className="max-w-7xl mx-auto px-4 py-8 w-full">

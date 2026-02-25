@@ -1,10 +1,10 @@
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
+import PatientNavbar from "../components/PatientNavbar";
 import { bookAppointmentApi, getDoctorByIdApi, getPatientProfileApi } from "../services/patientApi";
 import { fetchMyAppointments } from "../../../store/slices/appointmentSlice";
 import {
@@ -134,8 +134,6 @@ export default function DoctorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patientNav, setPatientNav] = useState({ name: 'Patient', image: PATIENT_DEFAULT_AVATAR });
 
-  const navigate = useNavigate();
-
   useEffect(() => {
     const loadDoctor = async () => {
       try {
@@ -257,31 +255,11 @@ export default function DoctorPage() {
   return (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-display flex flex-col">
 
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b bg-white dark:bg-[#1a2632]">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg text-[#137fec] bg-[#137fec1a]">
-              <span className="material-icons-round">icon</span>
-            </div>
-            <span className="font-bold text-xl">MediBook</span>
-          </div>
-          <div className="hidden md:flex gap-6 text-mx">
-            <span 
-            onClick={()=>navigate("/patient")} className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
-              Find Doctors
-            </span>
-            <span onClick={()=>navigate("/patient/appointments")}
-            className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
-            <span onClick={()=>navigate("/patient/profile")} 
-            className="hover:text-[#137fec] cursor-pointer">Profile</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-slate-800 dark:text-slate-100">{patientNav.name}</span>
-            <img src={patientNav.image || PATIENT_DEFAULT_AVATAR} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
-          </div>
-        </div>
-      </nav>
+      <PatientNavbar
+        activeTab="findDoctors"
+        patientName={patientNav.name}
+        patientImage={patientNav.image || PATIENT_DEFAULT_AVATAR}
+      />
 
       {/* Main Content */}
       <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col gap-6">
