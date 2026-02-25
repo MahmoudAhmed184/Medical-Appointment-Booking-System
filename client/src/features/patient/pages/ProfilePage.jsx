@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import PatientNavbar from "../components/PatientNavbar";
 import {
   getPatientProfileApi,
   updatePatientProfileApi,
@@ -146,47 +146,13 @@ export default function PatientProfile() {
     }
   };
 
-   const navigate =useNavigate();
   return (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-display flex flex-col">
-        {/* NAVBAR */}
-<nav className="sticky top-0 z-50 border-b bg-white dark:bg-[#1a2632]">
-  <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-    {/* LOGO */}
-    <div className="flex items-center gap-3">
-      <div className="p-2 rounded-lg text-[#137fec] bg-[#137fec1a]">
-        <span className="material-icons-round">icon</span>
-      </div>
-      <span className="font-bold text-xl">MediBook</span>
-    </div>
-
-    {/* TABS - Center */}
-    <div className="hidden md:flex gap-6 text-mx">
-      
-      <span onClick={()=>navigate("/patient")}
-       className="hover:text-[#137fec] cursor-pointer">Find Doctors</span>
-      <span onClick={()=>navigate("/patient/appointments")}
-       className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
-      <span onClick={()=>navigate("/patient/profile")}
-       className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
-        Profile
-      </span>
-    </div>
-
-    {/* PROFILE - Right */}
-    <div className="flex items-center gap-2">
-
-      <span className="font-medium text-slate-800 dark:text-slate-100">{profile.name || 'Patient'}</span>
-       <img
-        src={profile.image || PATIENT_DEFAULT_AVATAR}
-        alt="Profile"
-        className="w-10 h-10 rounded-full object-cover"
+      <PatientNavbar
+        activeTab="profile"
+        patientName={profile.name || 'Patient'}
+        patientImage={profile.image || PATIENT_DEFAULT_AVATAR}
       />
-    </div>
-
-  </div>
-</nav>
       {/* Main Content */}
       <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col gap-6">
         {loading && <p className="text-sm text-slate-500">Loading profile...</p>}

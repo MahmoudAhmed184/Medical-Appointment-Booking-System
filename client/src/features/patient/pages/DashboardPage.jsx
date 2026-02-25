@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
 import DoctorCard from "../components/DoctorCard";
+import PatientNavbar from "../components/PatientNavbar";
 import { bookAppointmentApi, getPatientProfileApi } from "../services/patientApi";
 import { fetchMyAppointments } from "../../../store/slices/appointmentSlice";
 import {
@@ -36,6 +37,16 @@ const toTimeString = (minutes) => {
   const h = String(Math.floor(minutes / 60)).padStart(2, "0");
   const m = String(minutes % 60).padStart(2, "0");
   return `${h}:${m}`;
+};
+
+const toLocalDateInputValue = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 const getDayAvailability = (availability, dateValue) => {
@@ -110,8 +121,11 @@ export default function DashboardPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patientNav, setPatientNav] = useState({ name: "Patient", image: PATIENT_DEFAULT_AVATAR });
   const [addressSearch, setAddressSearch] = useState("");
+  const todayDateString = useMemo(() => toLocalDateInputValue(new Date()), []);
+  const isPastSelectedDate = Boolean(selectedDate && selectedDate < todayDateString);
 
  const navigate =useNavigate();
+
  const handleDoctorClick=(doctor)=>{
   navigate(`/patient/doctor/${doctor.id}`,{state:{doctor}});
  }
@@ -217,43 +231,11 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f7f8] dark:bg-[#101922] text-slate-800 dark:text-slate-100">
 
-      {/* NAVBAR */}
-<nav className="sticky top-0 z-50 border-b bg-white dark:bg-[#1a2632]">
-  <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-    {/* LOGO */}
-    <div className="flex items-center gap-3">
-      <div className="p-2 rounded-lg text-[#137fec] bg-[#137fec1a]">
-        <span className="material-icons-round">icon</span>
-      </div>
-      <span className="font-bold text-xl">MediBook</span>
-    </div>
-
-    {/* TABS - Center */}
-    <div className="hidden md:flex gap-6 text-mx">
-      <span onClick={()=>navigate("/patient")} 
-      className="font-semibold text-[#137fec] border-b-2 border-[#137fec] cursor-pointer">
-        Find Doctors
-      </span>
-      <span onClick={()=>navigate("/patient/appointments")}
-       className="hover:text-[#137fec] cursor-pointer">My Appointments</span>
-      <span onClick={()=>navigate("/patient/profile")}
-      className="hover:text-[#137fec] cursor-pointer">Profile</span>
-    </div>
-
-    {/* PROFILE - Right */}
-    <div className="flex items-center gap-2">
-
-      <span className="font-medium text-slate-800 dark:text-slate-100">{patientNav.name}</span>
-       <img
-        src={patientNav.image || PATIENT_DEFAULT_AVATAR}
-        alt="Profile"
-        className="w-10 h-10 rounded-full object-cover"
+      <PatientNavbar
+        activeTab="findDoctors"
+        patientName={patientNav.name}
+        patientImage={patientNav.image || PATIENT_DEFAULT_AVATAR}
       />
-    </div>
-
-  </div>
-</nav>
 
       {/* MAIN */}
       <main className="max-w-7xl mx-auto px-4 py-8 w-full grid lg:grid-cols-12 gap-8 transition-all duration-300">
@@ -265,25 +247,25 @@ export default function DashboardPage() {
           }`}
         >
           {/* Search / Filter */}
-          <div className="flex flex-col md:flex-row gap-4 p-4 rounded-xl shadow bg-white mb-4">
+          <div className="flex flex-col md:flex-row gap-4 p-4 rounded-xl shadow bg-white dark:bg-slate-800 mb-4">
             <input
               type="text"
               placeholder="Search by doctor name..."
               value={search}
               onChange={(e) => dispatch(setSearch(e.target.value))}
-              className="flex-1 border rounded-lg px-3 py-2"
+              className="flex-1 border rounded-lg px-3 py-2 bg-white text-slate-900 border-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
             />
             <input
               type="text"
               placeholder="Search by address..."
               value={addressSearch}
               onChange={(e) => setAddressSearch(e.target.value)}
-              className="flex-1 border rounded-lg px-3 py-2"
+              className="flex-1 border rounded-lg px-3 py-2 bg-white text-slate-900 border-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
             />
             <select
               value={filterSpecialty}
               onChange={(e) => dispatch(setFilterSpecialty(e.target.value))}
-              className="border rounded-lg px-3 py-2"
+              className="border rounded-lg px-3 py-2 bg-white text-slate-900 border-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
             >
               {specialtyOptions.map((specialty) => (
                 <option key={specialty} value={specialty}>
@@ -353,6 +335,7 @@ export default function DashboardPage() {
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Date:</label>
               <input
                 type="date"
+                min={todayDateString}
                 className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
                 value={selectedDate}
                 onChange={(e) => {
@@ -362,6 +345,12 @@ export default function DashboardPage() {
                   dispatch(setSelectedTime(""));
                 }}
               />
+              {isPastSelectedDate && (
+                <p className="text-xs text-red-600">Past date is not allowed.</p>
+              )}
+              {selectedDate && !isPastSelectedDate && startOptions.length === 0 && (
+                <p className="text-xs text-red-600">Not available date.</p>
+              )}
 
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Start Time:</label>
               <select
@@ -373,7 +362,7 @@ export default function DashboardPage() {
                   dispatch(setSelectedEndTime(""));
                   dispatch(setSelectedTime(""));
                 }}
-                disabled={!selectedDate || startOptions.length === 0}
+                disabled={!selectedDate || isPastSelectedDate || startOptions.length === 0}
               >
                 <option value="">Choose start time</option>
                 {startOptions.map((time) => (
@@ -419,6 +408,7 @@ export default function DashboardPage() {
                 disabled={
                   isSubmitting ||
                   !selectedDate ||
+                  isPastSelectedDate ||
                   !selectedStartTime ||
                   !selectedEndTime ||
                   reason.trim().length < 10
