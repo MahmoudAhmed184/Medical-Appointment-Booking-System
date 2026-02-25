@@ -311,7 +311,6 @@ export {
     getProfile,
     getAllDoctors,
     getDoctorById,
-    getDoctorIdByUserId,
     updateProfile,
     getAvailability,
     setAvailability,
