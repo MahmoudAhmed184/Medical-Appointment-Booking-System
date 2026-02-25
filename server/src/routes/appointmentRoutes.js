@@ -3,7 +3,6 @@ import auth from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
 import { ROLES } from '../utils/constants.js';
 import {
-    bookAppointment,
     getAllAppointments,
     getAppointmentById,
     approveAppointment,
@@ -16,31 +15,31 @@ import {
 
 const router = express.Router();
 
-// POST   /api/appointments           — Patient books
-router.post('/', bookAppointment);
+// All routes require authentication
+router.use(auth);
 
 // GET    /api/appointments/all       — Admin view all
-router.get('/all', getAllAppointments);
+router.get('/all', authorize(ROLES.ADMIN), getAllAppointments);
 
-// GET    /api/appointments/:id       — Owner or Admin
+// GET    /api/appointments/:id       — Owner or Admin (ownership checked in controller)
 router.get('/:id', getAppointmentById);
 
 // PATCH  /api/appointments/:id/approve   — Doctor
-router.patch('/:id/approve', approveAppointment);
+router.patch('/:id/approve', authorize(ROLES.DOCTOR), approveAppointment);
 
 // PATCH  /api/appointments/:id/reject    — Doctor
-router.patch('/:id/reject', rejectAppointment);
+router.patch('/:id/reject', authorize(ROLES.DOCTOR), rejectAppointment);
 
 // PATCH  /api/appointments/:id/complete  — Doctor
-router.patch('/:id/complete', completeAppointment);
+router.patch('/:id/complete', authorize(ROLES.DOCTOR), completeAppointment);
 
 // PATCH  /api/appointments/:id/cancel    — Patient
-router.patch('/:id/cancel', cancelAppointment);
+router.patch('/:id/cancel', authorize(ROLES.PATIENT), cancelAppointment);
 
 // PATCH  /api/appointments/:id/reschedule — Patient
-router.patch('/:id/reschedule', rescheduleAppointment);
+router.patch('/:id/reschedule', authorize(ROLES.PATIENT), rescheduleAppointment);
 
 // PATCH  /api/appointments/:id/notes     — Doctor
-router.patch('/:id/notes', addNotes);
+router.patch('/:id/notes', authorize(ROLES.DOCTOR), addNotes);
 
 export default router;
