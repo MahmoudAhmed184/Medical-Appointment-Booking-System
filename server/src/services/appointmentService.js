@@ -365,8 +365,8 @@ const bookAppointment = async (userId, { doctorId, date, startTime, endTime, rea
 
     // Verify doctor is approved
     const doctorUser = await User.findById(doctor.userId._id || doctor.userId);
-    if (!doctorUser || !doctorUser.isApproved) {
-        throw new ApiError(400, 'This doctor is not yet approved and cannot accept appointments');
+    if (!doctorUser || !doctorUser.isApproved || doctorUser.isBlocked) {
+        throw new ApiError(400, 'This doctor is not available for appointments');
     }
 
     const now = new Date();
