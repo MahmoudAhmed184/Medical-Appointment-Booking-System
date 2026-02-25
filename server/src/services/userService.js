@@ -1,6 +1,8 @@
 import User from '../models/User.js';
 import Doctor from '../models/Doctor.js';
 import Patient from '../models/Patient.js';
+import Appointment from '../models/Appointment.js';
+import Availability from '../models/Availability.js';
 import ApiError from '../utils/ApiError.js';
 import { ROLES } from '../utils/constants.js';
 
@@ -137,11 +139,20 @@ const deleteUser = async (id) => {
         throw new ApiError(403, 'Cannot delete an admin user');
     }
 
-    // Delete associated profile
+    // Delete associated profile and related data
     if (user.role === ROLES.DOCTOR) {
-        await Doctor.deleteOne({ userId: user._id });
+        const doctor = await Doctor.findOne({ userId: user._id });
+        if (doctor) {
+            await Availability.deleteMany({ doctorId: doctor._id });
+            await Appointment.deleteMany({ doctorId: doctor._id });
+            await doctor.deleteOne();
+        }
     } else if (user.role === ROLES.PATIENT) {
-        await Patient.deleteOne({ userId: user._id });
+        const patient = await Patient.findOne({ userId: user._id });
+        if (patient) {
+            await Appointment.deleteMany({ patientId: patient._id });
+            await patient.deleteOne();
+        }
     }
 
     await User.findByIdAndDelete(id);
