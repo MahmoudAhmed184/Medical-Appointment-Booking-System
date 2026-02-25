@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import { validateEnv } from './src/config/env.js';
+validateEnv();
+
 import mongoose from 'mongoose';
 import { connectDB } from './src/config/db.js';
 import app from './src/app.js';
