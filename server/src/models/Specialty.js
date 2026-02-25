@@ -21,8 +21,7 @@ const specialtySchema = new mongoose.Schema(
     }
 );
 
-// Index for faster lookups
-specialtySchema.index({ name: 1 });
+
 
 const Specialty = mongoose.model('Specialty', specialtySchema);
 
