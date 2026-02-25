@@ -4,6 +4,7 @@ import authorize from '../middleware/authorize.js';
 import validate from '../middleware/validate.js';
 import { ROLES } from '../utils/constants.js';
 import { updateDoctorProfileSchema } from '../validations/profileValidation.js';
+import { createAvailabilitySchema, updateAvailabilitySchema } from '../validations/availabilityValidation.js';
 import {
     getAllDoctors,
     getDoctorById,
@@ -26,10 +27,10 @@ router.put('/profile', auth, authorize(ROLES.DOCTOR), validate(updateDoctorProfi
 router.get('/availability', auth, authorize(ROLES.DOCTOR), getAvailability);
 
 // POST /api/doctors/availability
-router.post('/availability', auth, authorize(ROLES.DOCTOR), setAvailability);
+router.post('/availability', auth, authorize(ROLES.DOCTOR), validate(createAvailabilitySchema), setAvailability);
 
 // PUT  /api/doctors/availability/:slotId
-router.put('/availability/:slotId', auth, authorize(ROLES.DOCTOR), updateAvailabilitySlot);
+router.put('/availability/:slotId', auth, authorize(ROLES.DOCTOR), validate(updateAvailabilitySchema), updateAvailabilitySlot);
 
 // DELETE /api/doctors/availability/:slotId
 router.delete('/availability/:slotId', auth, authorize(ROLES.DOCTOR), deleteAvailabilitySlot);

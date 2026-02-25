@@ -4,6 +4,7 @@ import authorize from '../middleware/authorize.js';
 import validate from '../middleware/validate.js';
 import { ROLES } from '../utils/constants.js';
 import { updatePatientProfileSchema } from '../validations/profileValidation.js';
+import { bookAppointmentSchema, rescheduleAppointmentSchema } from '../validations/appointmentValidation.js';
 import {
   getProfile,
   updateProfile,
@@ -23,7 +24,7 @@ router.put("/profile", validate(updatePatientProfileSchema), updateProfile);    
 
 // ===== Appointments =====
 router.get("/appointments", listAppointments); // GET all appointments of patient
-router.post("/appointments", bookAppointment); // BOOK a new appointment
+router.post("/appointments", validate(bookAppointmentSchema), bookAppointment); // BOOK a new appointment
 router.patch("/appointments/:id/cancel", cancelAppointment); // CANCEL appointment
-router.patch("/appointments/:id/reschedule", rescheduleAppointment); // RESCHEDULE appointment
+router.patch("/appointments/:id/reschedule", validate(rescheduleAppointmentSchema), rescheduleAppointment); // RESCHEDULE appointment
 export default router;
