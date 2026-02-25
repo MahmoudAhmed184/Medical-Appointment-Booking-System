@@ -39,6 +39,16 @@ const toTimeString = (minutes) => {
   return `${h}:${m}`;
 };
 
+const toLocalDateInputValue = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const getDayAvailability = (availability, dateValue) => {
   if (!dateValue) return [];
   const selectedDate = new Date(dateValue);
@@ -111,6 +121,8 @@ export default function DashboardPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patientNav, setPatientNav] = useState({ name: "Patient", image: PATIENT_DEFAULT_AVATAR });
   const [addressSearch, setAddressSearch] = useState("");
+  const todayDateString = useMemo(() => toLocalDateInputValue(new Date()), []);
+  const isPastSelectedDate = Boolean(selectedDate && selectedDate < todayDateString);
 
  const navigate =useNavigate();
 
@@ -323,6 +335,7 @@ export default function DashboardPage() {
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Date:</label>
               <input
                 type="date"
+                min={todayDateString}
                 className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
                 value={selectedDate}
                 onChange={(e) => {
@@ -332,6 +345,12 @@ export default function DashboardPage() {
                   dispatch(setSelectedTime(""));
                 }}
               />
+              {isPastSelectedDate && (
+                <p className="text-xs text-red-600">Past date is not allowed.</p>
+              )}
+              {selectedDate && !isPastSelectedDate && startOptions.length === 0 && (
+                <p className="text-xs text-red-600">Not available date.</p>
+              )}
 
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Select Start Time:</label>
               <select
@@ -343,7 +362,7 @@ export default function DashboardPage() {
                   dispatch(setSelectedEndTime(""));
                   dispatch(setSelectedTime(""));
                 }}
-                disabled={!selectedDate || startOptions.length === 0}
+                disabled={!selectedDate || isPastSelectedDate || startOptions.length === 0}
               >
                 <option value="">Choose start time</option>
                 {startOptions.map((time) => (
@@ -389,6 +408,7 @@ export default function DashboardPage() {
                 disabled={
                   isSubmitting ||
                   !selectedDate ||
+                  isPastSelectedDate ||
                   !selectedStartTime ||
                   !selectedEndTime ||
                   reason.trim().length < 10

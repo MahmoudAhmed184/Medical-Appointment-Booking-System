@@ -132,6 +132,7 @@ export default function MyAppointmentsPage() {
   const [patientNav, setPatientNav] = useState({ name: 'Patient', image: PATIENT_DEFAULT_AVATAR });
 
   const todayDateString = useMemo(() => toLocalDateInputValue(new Date()), []);
+  const isPastRescheduleDate = Boolean(rescheduleDate && rescheduleDate < todayDateString);
   const rescheduleStartOptions = useMemo(
     () => getStartOptions(rescheduleAvailability, rescheduleDate),
     [rescheduleAvailability, rescheduleDate]
@@ -334,6 +335,12 @@ export default function MyAppointmentsPage() {
               }}
               className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
             />
+            {isPastRescheduleDate && (
+              <p className="text-xs text-red-600">Past date is not allowed.</p>
+            )}
+            {rescheduleDate && !isPastRescheduleDate && !availabilityLoading && rescheduleStartOptions.length === 0 && (
+              <p className="text-xs text-red-600">Not available date.</p>
+            )}
 
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">New Start Time:</label>
             <select
@@ -342,7 +349,7 @@ export default function MyAppointmentsPage() {
                 setRescheduleStartTime(e.target.value);
                 setRescheduleEndTime('');
               }}
-              disabled={!rescheduleDate || availabilityLoading || rescheduleStartOptions.length === 0}
+              disabled={!rescheduleDate || isPastRescheduleDate || availabilityLoading || rescheduleStartOptions.length === 0}
               className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:text-white"
             >
               <option value="">Choose start time</option>
@@ -371,9 +378,6 @@ export default function MyAppointmentsPage() {
             {availabilityLoading && (
               <p className="text-xs text-slate-500">Loading doctor availability...</p>
             )}
-            {rescheduleDate && !availabilityLoading && rescheduleStartOptions.length === 0 && (
-              <p className="text-xs text-slate-500">No availability for this day.</p>
-            )}
             {rescheduleStartTime && !availabilityLoading && rescheduleEndOptions.length === 0 && (
               <p className="text-xs text-slate-500">No valid end time for this start (maximum duration is 1 hour).</p>
             )}
@@ -387,6 +391,7 @@ export default function MyAppointmentsPage() {
               disabled={
                 isRescheduling ||
                 !rescheduleDate ||
+                isPastRescheduleDate ||
                 !rescheduleStartTime ||
                 !rescheduleEndTime
               }
