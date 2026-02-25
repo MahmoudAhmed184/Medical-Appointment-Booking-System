@@ -75,7 +75,10 @@ const getProfile = async (userId) => {
  * Get all approved, non-blocked doctors with their availability.
  */
 const getAllDoctors = async (query = {}) => {
-    const { specialty, search } = query;
+    const { specialty, search, page = 1, limit = 10 } = query;
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.max(1, Math.min(100, Number(limit)));
+    const skip = (pageNum - 1) * limitNum;
 
     const userFilter = { role: 'doctor', isApproved: true, isBlocked: false };
     if (search) {
@@ -90,10 +93,15 @@ const getAllDoctors = async (query = {}) => {
         doctorFilter.specialtyId = specialty;
     }
 
+    const totalItems = await Doctor.countDocuments(doctorFilter);
+    const totalPages = Math.ceil(totalItems / limitNum);
+
     const doctors = await Doctor.find(doctorFilter)
         .populate('userId', 'name email')
         .populate('specialtyId', 'name description')
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum);
 
     // Batch-load availability for all doctors
     const doctorIds = doctors.map((doc) => doc._id);
@@ -114,9 +122,14 @@ const getAllDoctors = async (query = {}) => {
         });
     }
 
-    return doctors.map((doc) =>
+    const data = doctors.map((doc) =>
         formatDoctor(doc, availabilityByDoctorId.get(String(doc._id)) || [])
     );
+
+    return {
+        doctors: data,
+        pagination: { page: pageNum, limit: limitNum, totalItems, totalPages },
+    };
 };
 
 /**

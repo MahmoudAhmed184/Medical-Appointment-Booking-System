@@ -20,9 +20,9 @@ const getProfile = catchAsync(async (req, res) => {
  * @access  Public
  */
 const getAllDoctors = catchAsync(async (req, res) => {
-    const data = await doctorService.getAllDoctors(req.query);
+    const { doctors, pagination } = await doctorService.getAllDoctors(req.query);
 
-    res.status(200).json({ success: true, data });
+    res.status(200).json({ success: true, data: doctors, pagination });
 });
 
 /**

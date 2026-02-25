@@ -337,13 +337,22 @@ const bookAppointment = async (userId, { doctorId, date, startTime, endTime, rea
 /**
  * List appointments for a patient.
  */
-const getPatientAppointments = async (userId) => {
+const getPatientAppointments = async (userId, query = {}) => {
     const patient = await Patient.findOne({ userId });
     if (!patient) {
         throw new ApiError(404, 'Patient profile not found');
     }
 
-    return Appointment.find({ patientId: patient._id })
+    const { page = 1, limit = 10 } = query;
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.max(1, Math.min(100, Number(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = { patientId: patient._id };
+    const totalItems = await Appointment.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limitNum);
+
+    const appointments = await Appointment.find(filter)
         .populate({
             path: 'doctorId',
             populate: [
@@ -351,7 +360,14 @@ const getPatientAppointments = async (userId) => {
                 { path: 'specialtyId', select: 'name' },
             ],
         })
-        .sort({ date: 1 });
+        .sort({ date: -1, startTime: -1 })
+        .skip(skip)
+        .limit(limitNum);
+
+    return {
+        appointments,
+        pagination: { page: pageNum, limit: limitNum, totalItems, totalPages },
+    };
 };
 
 /**

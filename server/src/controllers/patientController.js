@@ -38,9 +38,9 @@ const updateProfile = catchAsync(async (req, res) => {
  * @access  Patient
  */
 const listAppointments = catchAsync(async (req, res) => {
-  const data = await appointmentService.getPatientAppointments(req.user._id);
+  const { appointments, pagination } = await appointmentService.getPatientAppointments(req.user._id, req.query);
 
-  res.status(200).json({ success: true, data });
+  res.status(200).json({ success: true, data: appointments, pagination });
 });
 
 /**
