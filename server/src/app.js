@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
 import errorHandler from "./middleware/errorHandler.js";
 
 // Route imports
@@ -13,12 +15,16 @@ import specialtyRoutes from "./routes/specialtyRoutes.js";
 
 const app = express();
 
+// Security middleware
+app.use(helmet());
+app.use(mongoSanitize());
+
 // Global middleware
 app.use(cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 app.use(morgan('dev'));
 
 // Mount API routes
