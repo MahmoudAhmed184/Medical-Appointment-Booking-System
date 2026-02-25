@@ -2,6 +2,17 @@ import catchAsync from '../utils/catchAsync.js';
 import * as appointmentService from '../services/appointmentService.js';
 
 /**
+ * @desc    List own appointments (doctor or patient, by role)
+ * @route   GET /api/appointments
+ * @access  Doctor
+ */
+const listAppointments = catchAsync(async (req, res) => {
+    const data = await appointmentService.getDoctorAppointments(req.user._id, req.query);
+
+    res.status(200).json({ success: true, data });
+});
+
+/**
  * @desc    Get all appointments (paginated, filtered) — Admin view
  * @route   GET /api/appointments/all
  * @access  Admin
@@ -11,7 +22,6 @@ const getAllAppointments = catchAsync(async (req, res) => {
 
     res.status(200).json({ success: true, data: appointments, pagination });
 });
-
 /**
  * @desc    Get appointment by ID — Owner or Admin
  * @route   GET /api/appointments/:id
@@ -94,12 +104,11 @@ const addNotes = catchAsync(async (req, res) => {
 });
 
 export {
+    listAppointments,
     getAllAppointments,
     getAppointmentById,
     approveAppointment,
     rejectAppointment,
     completeAppointment,
-    cancelAppointment,
-    rescheduleAppointment,
     addNotes,
 };

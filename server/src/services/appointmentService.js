@@ -180,122 +180,37 @@ const completeAppointment = async (appointmentId, userId) => {
     return appointment;
 };
 
-/**
- * Cancel a pending or confirmed appointment (patient action via appointment routes).
- */
-const cancelAppointment = async (appointmentId, userId) => {
-    const { appointment } = await findAndVerifyPatientOwnership(appointmentId, userId);
-
-    if (![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.CONFIRMED].includes(appointment.status)) {
-        throw new ApiError(400, `Cannot cancel an appointment with status "${appointment.status}". Only pending or confirmed appointments can be cancelled.`);
-    }
-
-    appointment.status = APPOINTMENT_STATUS.CANCELLED;
-    await appointment.save();
-    return appointment;
-};
 
 /**
- * Reschedule an appointment (patient action via appointment routes).
- * Validates date/time, availability, and conflicts.
+ * List appointments for a doctor.
  */
-const rescheduleAppointment = async (appointmentId, userId, { date, startTime, endTime }) => {
-    const { appointment } = await findAndVerifyPatientOwnership(appointmentId, userId);
-
-    if (![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.CONFIRMED].includes(appointment.status)) {
-        throw new ApiError(400, `Cannot reschedule an appointment with status "${appointment.status}"`);
+const getDoctorAppointments = async (userId, query = {}) => {
+    const doctor = await Doctor.findOne({ userId });
+    if (!doctor) {
+        throw new ApiError(404, 'Doctor profile not found');
     }
 
-    // Validate time format
-    const timeRegex = /^([0-1]\d|2[0-3]):[0-5]\d$/;
-    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
-        throw new ApiError(400, 'startTime and endTime must be in HH:mm format');
+    const { status, startDate, endDate } = query;
+    const filter = { doctorId: doctor._id };
+
+    if (status && Object.values(APPOINTMENT_STATUS).includes(status)) {
+        filter.status = status;
     }
 
-    // Validate date
-    const dateMatch = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(date);
-    if (!dateMatch) {
-        throw new ApiError(400, 'Invalid appointment date format (YYYY-MM-DD required)');
+    if (startDate || endDate) {
+        filter.date = {};
+        if (startDate) filter.date.$gte = new Date(startDate);
+        if (endDate) filter.date.$lte = new Date(endDate);
     }
 
-    const year = Number(dateMatch[1]);
-    const month = Number(dateMatch[2]);
-    const day = Number(dateMatch[3]);
-
-    const appointmentDay = new Date(year, month - 1, day);
-    if (
-        Number.isNaN(appointmentDay.getTime()) ||
-        appointmentDay.getFullYear() !== year ||
-        appointmentDay.getMonth() !== month - 1 ||
-        appointmentDay.getDate() !== day
-    ) {
-        throw new ApiError(400, 'Invalid appointment date');
-    }
-
-    const startMinutes = toMinutes(startTime);
-    const endMinutes = toMinutes(endTime);
-    if (endMinutes <= startMinutes) {
-        throw new ApiError(400, 'endTime must be greater than startTime');
-    }
-
-    if (endMinutes - startMinutes > MAX_APPOINTMENT_DURATION_MINUTES) {
-        throw new ApiError(400, 'Appointment duration cannot exceed 1 hour');
-    }
-
-    // Check not in the past
-    const now = new Date();
-    const startDateTime = new Date(appointmentDay);
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    startDateTime.setHours(startHour, startMinute, 0, 0);
-
-    if (startDateTime < now) {
-        throw new ApiError(400, 'Cannot reschedule to a past time');
-    }
-
-    // Check doctor availability
-    const dayOfWeek = appointmentDay.getDay();
-    const doctorAvailabilities = await Availability.find({
-        doctorId: appointment.doctorId,
-        dayOfWeek,
-    }).select('startTime endTime');
-
-    const isWithinAvailability = doctorAvailabilities.some((slot) => {
-        const slotStart = toMinutes(slot.startTime);
-        const slotEnd = toMinutes(slot.endTime);
-        return startMinutes >= slotStart && endMinutes <= slotEnd;
-    });
-
-    if (!isWithinAvailability) {
-        throw new ApiError(400, 'Doctor is not available at this date/time');
-    }
-
-    // Check for conflicting appointments
-    const dayStart = new Date(appointmentDay);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(appointmentDay);
-    dayEnd.setHours(23, 59, 59, 999);
-
-    const conflicting = await Appointment.findOne({
-        _id: { $ne: appointment._id },
-        doctorId: appointment.doctorId,
-        date: { $gte: dayStart, $lte: dayEnd },
-        status: { $nin: [APPOINTMENT_STATUS.CANCELLED, APPOINTMENT_STATUS.REJECTED] },
-        startTime: { $lt: endTime },
-        endTime: { $gt: startTime },
-    });
-
-    if (conflicting) {
-        throw new ApiError(400, 'This time slot is already booked');
-    }
-
-    appointment.date = dayStart;
-    appointment.startTime = startTime;
-    appointment.endTime = endTime;
-    appointment.status = APPOINTMENT_STATUS.PENDING;
-    await appointment.save();
-
-    return appointment;
+    return Appointment.find(filter)
+        .populate({
+            path: 'patientId',
+            populate: { path: 'userId', select: 'name email' },
+        })
+        .sort({ date: -1, startTime: -1 });
 };
+
 
 /**
  * Add/update doctor notes on an appointment.
@@ -589,11 +504,11 @@ export {
     approveAppointment,
     rejectAppointment,
     completeAppointment,
-    cancelAppointment,
-    rescheduleAppointment,
     addNotes,
     bookAppointment,
+    getDoctorAppointments,
     getPatientAppointments,
     cancelPatientAppointment,
     reschedulePatientAppointment,
 };
+
