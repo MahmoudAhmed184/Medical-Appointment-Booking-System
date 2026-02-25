@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import { ROLES } from '../utils/constants.js';
 
 const userSchema = new mongoose.Schema(
@@ -59,9 +60,8 @@ userSchema.pre('save', async function (next) {
     }
 
     try {
-        const bcrypt = await import('bcryptjs');
-        const salt = await bcrypt.default.genSalt(10);
-        this.password = await bcrypt.default.hash(this.password, salt);
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
         next();
     } catch (error) {
         next(error);
@@ -70,8 +70,7 @@ userSchema.pre('save', async function (next) {
 
 // Instance method to compare password for login
 userSchema.methods.comparePassword = async function (candidatePassword) {
-    const bcrypt = await import('bcryptjs');
-    return await bcrypt.default.compare(candidatePassword, this.password);
+    return bcrypt.compare(candidatePassword, this.password);
 };
 
 
