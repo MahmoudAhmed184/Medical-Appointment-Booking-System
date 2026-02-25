@@ -5,6 +5,7 @@ import { ROLES } from '../utils/constants.js';
 import {
     listAppointments,
     getAllAppointments,
+    getDoctorAppointments,
     getAppointmentById,
     approveAppointment,
     rejectAppointment,
@@ -18,6 +19,11 @@ router.use(auth);
 
 router.get('/', authorize(ROLES.DOCTOR), listAppointments);
 router.get('/all', authorize(ROLES.ADMIN), getAllAppointments);
+
+// GET    /api/appointments/doctor    — Doctor's own appointments
+router.get('/doctor', authorize(ROLES.DOCTOR), getDoctorAppointments);
+
+
 router.get('/:id', getAppointmentById);
 router.patch('/:id/approve', authorize(ROLES.DOCTOR), approveAppointment);
 router.patch('/:id/reject', authorize(ROLES.DOCTOR), rejectAppointment);
