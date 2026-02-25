@@ -1,7 +1,5 @@
 import catchAsync from '../utils/catchAsync.js';
-import ApiError from '../utils/ApiError.js';
-import Patient from '../models/Patient.js';
-import User from '../models/User.js';
+import * as patientService from '../services/patientService.js';
 import * as appointmentService from '../services/appointmentService.js';
 import {
   sendAppointmentConfirmation,
@@ -14,12 +12,9 @@ import {
  * @access  Patient
  */
 const getProfile = catchAsync(async (req, res) => {
-  const patient = await Patient.findOne({ userId: req.user._id }).populate('user');
-  if (!patient) {
-    throw new ApiError(404, 'Patient profile not found');
-  }
+  const data = await patientService.getProfile(req.user._id);
 
-  res.status(200).json({ success: true, data: patient });
+  res.status(200).json({ success: true, data });
 });
 
 /**
@@ -28,29 +23,11 @@ const getProfile = catchAsync(async (req, res) => {
  * @access  Patient
  */
 const updateProfile = catchAsync(async (req, res) => {
-  const { phone, dateOfBirth, name, email, address, image } = req.body;
-
-  const patient = await Patient.findOne({ userId: req.user._id });
-  if (!patient) {
-    throw new ApiError(404, 'Patient not found');
-  }
-
-  if (phone) patient.phone = phone;
-  if (dateOfBirth) patient.dateOfBirth = dateOfBirth;
-  if (address !== undefined) patient.address = address;
-  if (image !== undefined) patient.image = image;
-  await patient.save();
-
-  const user = await User.findById(req.user._id);
-  if (name) user.name = name;
-  if (email) user.email = email;
-  await user.save();
-
-  const updatedPatient = await Patient.findById(patient._id).populate('user');
+  const data = await patientService.updateProfile(req.user._id, req.body);
 
   res.status(200).json({
     success: true,
-    data: updatedPatient,
+    data,
     message: 'Profile updated successfully',
   });
 });
