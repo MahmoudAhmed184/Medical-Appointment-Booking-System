@@ -48,7 +48,7 @@ const patientSchema = new mongoose.Schema(
 );
 
 // Index for faster lookups
-//patientSchema.index({ userId: 1 });
+patientSchema.index({ userId: 1 });
 
 // Virtual populate for user details
 patientSchema.virtual('user', {
