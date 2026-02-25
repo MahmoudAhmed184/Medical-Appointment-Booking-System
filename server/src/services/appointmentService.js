@@ -1,16 +1,10 @@
 import Appointment from '../models/Appointment.js';
+import ApiError from '../utils/ApiError.js';
 import { APPOINTMENT_STATUS } from '../utils/constants.js';
-
-// TODO: Implement bookAppointment service
-const bookAppointment = async (data) => { };
-
-// TODO: Implement getAppointments service
-const getAppointments = async (userId, role, query) => { };
 
 /**
  * Get all appointments with pagination and filtering (admin).
  * FR-ADMIN-05
- * Filters: status, doctorId, patientId, date range
  */
 const getAllAppointments = async (query) => {
     const {
@@ -25,22 +19,18 @@ const getAllAppointments = async (query) => {
 
     const filter = {};
 
-    // Filter by status
     if (status && Object.values(APPOINTMENT_STATUS).includes(status)) {
         filter.status = status;
     }
 
-    // Filter by doctor
     if (doctorId) {
         filter.doctorId = doctorId;
     }
 
-    // Filter by patient
     if (patientId) {
         filter.patientId = patientId;
     }
 
-    // Filter by date range
     if (startDate || endDate) {
         filter.date = {};
         if (startDate) {
@@ -58,14 +48,14 @@ const getAllAppointments = async (query) => {
     const [appointments, totalItems] = await Promise.all([
         Appointment.find(filter)
             .populate({
-                path: 'patient',
-                populate: { path: 'user', select: 'name email' },
+                path: 'patientId',
+                populate: { path: 'userId', select: 'name email' },
             })
             .populate({
-                path: 'doctor',
+                path: 'doctorId',
                 populate: [
-                    { path: 'user', select: 'name email' },
-                    { path: 'specialty', select: 'name' },
+                    { path: 'userId', select: 'name email' },
+                    { path: 'specialtyId', select: 'name' },
                 ],
             })
             .sort({ date: -1, startTime: -1 })
@@ -85,24 +75,74 @@ const getAllAppointments = async (query) => {
     };
 };
 
-// TODO: Implement getAppointmentById service
-const getAppointmentById = async (id) => { };
+/**
+ * Get a single appointment by ID with populated references.
+ */
+const getAppointmentById = async (id) => {
+    const appointment = await Appointment.findById(id)
+        .populate({
+            path: 'patientId',
+            populate: { path: 'userId', select: 'name email' },
+        })
+        .populate({
+            path: 'doctorId',
+            populate: [
+                { path: 'userId', select: 'name email' },
+                { path: 'specialtyId', select: 'name' },
+            ],
+        });
 
-// TODO: Implement updateStatus service
-const updateStatus = async (id, status) => { };
+    if (!appointment) {
+        throw new ApiError(404, 'Appointment not found');
+    }
 
-// TODO: Implement reschedule service
-const reschedule = async (id, data) => { };
+    return appointment;
+};
 
-// TODO: Implement addNotes service
-const addNotes = async (id, notes) => { };
+/**
+ * Update appointment status with validation.
+ */
+const updateStatus = async (id, newStatus) => {
+    const appointment = await Appointment.findById(id);
+    if (!appointment) {
+        throw new ApiError(404, 'Appointment not found');
+    }
+
+    // Status transition validation
+    const validTransitions = {
+        [APPOINTMENT_STATUS.PENDING]: [APPOINTMENT_STATUS.CONFIRMED, APPOINTMENT_STATUS.REJECTED, APPOINTMENT_STATUS.CANCELLED],
+        [APPOINTMENT_STATUS.CONFIRMED]: [APPOINTMENT_STATUS.COMPLETED, APPOINTMENT_STATUS.CANCELLED],
+    };
+
+    const allowed = validTransitions[appointment.status];
+    if (!allowed || !allowed.includes(newStatus)) {
+        throw new ApiError(400, `Cannot transition from "${appointment.status}" to "${newStatus}"`);
+    }
+
+    appointment.status = newStatus;
+    await appointment.save();
+
+    return appointment;
+};
+
+/**
+ * Add or update doctor notes on an appointment.
+ */
+const addNotes = async (id, notes) => {
+    const appointment = await Appointment.findById(id);
+    if (!appointment) {
+        throw new ApiError(404, 'Appointment not found');
+    }
+
+    appointment.notes = notes;
+    await appointment.save();
+
+    return appointment;
+};
 
 export {
-    bookAppointment,
-    getAppointments,
     getAllAppointments,
     getAppointmentById,
     updateStatus,
-    reschedule,
     addNotes,
 };
