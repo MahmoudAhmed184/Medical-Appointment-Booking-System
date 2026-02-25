@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-const phonePattern = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+const phonePattern = /^\+?[\d\s-]{7,15}$/;
 
 const commonProfileFields = {
     name: Joi.string().trim().min(2).max(100).optional().messages({
@@ -12,7 +12,7 @@ const commonProfileFields = {
         'string.email': 'Please provide a valid email address',
     }),
 
-    phone: Joi.string().trim().pattern(phonePattern).optional().messages({
+    phone: Joi.string().trim().pattern(phonePattern).allow('').optional().messages({
         'string.pattern.base': 'Please provide a valid phone number',
     }),
 
