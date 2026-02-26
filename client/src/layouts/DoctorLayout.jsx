@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../store/slices/authSlice';
 
 const navItems = [
     { text: 'Dashboard', icon: '📊', path: '/doctor' },
@@ -19,6 +21,7 @@ const getUserFromStorage = () => {
 const DoctorLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const dispatch = useDispatch();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [user, setUser] = useState(getUserFromStorage);
 
@@ -38,8 +41,7 @@ const DoctorLayout = () => {
     }, [refreshUser]);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        dispatch(logout());
         navigate('/login');
     };
 
