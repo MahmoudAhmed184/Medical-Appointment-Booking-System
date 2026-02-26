@@ -119,7 +119,7 @@ export default function AppointmentsPage() {
                     </p>
                 </div>
             ) : (
-                filteredAppointments
+                [...filteredAppointments]
                     .sort((a, b) => new Date(b.date) - new Date(a.date))
                     .map((appt) => (
                         <AppointmentCard
