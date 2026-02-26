@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 import { useTheme } from '../shared/context/ThemeContext';
 import { FiBarChart2, FiUsers, FiTag, FiClipboard, FiActivity, FiLogOut, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
+import { getUserFromStorage } from '../shared/utils/storage';
 
 const navItems = [
     { text: 'Dashboard', icon: <FiBarChart2 />, path: '/admin' },
@@ -11,14 +12,6 @@ const navItems = [
     { text: 'Specialties', icon: <FiTag />, path: '/admin/specialties' },
     { text: 'Appointments', icon: <FiClipboard />, path: '/admin/appointments' },
 ];
-
-const getUserFromStorage = () => {
-    try {
-        return JSON.parse(localStorage.getItem('user')) || {};
-    } catch {
-        return {};
-    }
-};
 
 const AdminLayout = () => {
     const navigate = useNavigate();
