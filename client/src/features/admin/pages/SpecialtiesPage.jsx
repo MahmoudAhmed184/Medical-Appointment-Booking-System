@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { FiTag, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import useSpecialties from '../hooks/useSpecialties';
-import useToast from '../../../shared/hooks/useToast';
+import { useToast } from '../../../shared/hooks/useToast';
 import Toast from '../../../shared/components/Toast';
 import SpecialtyForm from '../components/SpecialtyForm';
 

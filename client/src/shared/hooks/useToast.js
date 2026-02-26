@@ -11,7 +11,7 @@ import { useState, useCallback } from 'react';
  *
  *   // Render: <Toast toast={toast} />
  */
-export default function useToast(duration = 4000) {
+export function useToast(duration = 4000) {
     const [toast, setToast] = useState(null);
 
     const showToast = useCallback(

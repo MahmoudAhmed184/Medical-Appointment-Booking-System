@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import useUsers from '../hooks/useUsers';
-import useToast from '../../../shared/hooks/useToast';
+import { useToast } from '../../../shared/hooks/useToast';
 import Toast from '../../../shared/components/Toast';
 import UsersTable from '../components/UsersTable';
 
