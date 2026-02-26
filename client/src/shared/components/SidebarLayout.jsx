@@ -48,7 +48,7 @@ const SidebarLayout = ({
                 <div className="flex items-center gap-3">
                     <span className="text-3xl"><FiActivity /></span>
                     <div>
-                        <h1 className="text-lg font-bold leading-tight">MediBook</h1>
+                        <h1 className="text-lg font-bold leading-tight">Alfihaa Docs</h1>
                         <p className="text-xs text-blue-200">{portalLabel}</p>
                     </div>
                 </div>
@@ -126,7 +126,7 @@ const SidebarLayout = ({
                         <FiMenu className="w-6 h-6" />
                     </button>
                     <span className="ml-3 text-lg font-bold text-blue-600 flex items-center gap-2">
-                        <FiActivity /> MediBook
+                        <FiActivity /> Alfihaa Docs
                     </span>
                 </div>
                 {/* Dark mode toggle — mobile */}

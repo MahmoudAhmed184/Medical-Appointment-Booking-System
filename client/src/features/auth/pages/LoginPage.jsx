@@ -21,7 +21,7 @@ const LoginPage = () => {
                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                             <FiActivity className="w-7 h-7" />
                         </div>
-                        <span className="text-2xl font-bold">MediBook</span>
+                        <span className="text-2xl font-bold">Alfihaa Docs</span>
                     </div>
 
                     <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
@@ -58,7 +58,7 @@ const LoginPage = () => {
                     {/* Mobile logo */}
                     <div className="flex items-center gap-2 lg:hidden">
                         <FiActivity className="w-6 h-6 text-blue-600" />
-                        <span className="text-lg font-bold text-gray-900 dark:text-white">MediBook</span>
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">Alfihaa Docs</span>
                     </div>
                     <div className="lg:flex-1" />
                     <button

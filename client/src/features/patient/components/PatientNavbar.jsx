@@ -31,7 +31,7 @@ export default function PatientNavbar({
           <div className="p-2 rounded-lg text-[#137fec] bg-[#137fec1a]">
             <FiActivity className="w-5 h-5" />
           </div>
-          <span className="font-bold text-xl">MediBook</span>
+          <span className="font-bold text-xl">Alfihaa Docs</span>
         </div>
 
         <div className="hidden md:flex gap-6 text-mx">
