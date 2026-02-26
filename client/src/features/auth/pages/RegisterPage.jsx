@@ -30,20 +30,6 @@ const RegisterPage = () => {
                     <p className="text-lg text-blue-100 leading-relaxed max-w-md mb-10">
                         Whether you&apos;re a patient seeking care or a doctor ready to help — create your account and get started in minutes.
                     </p>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-3 gap-6">
-                        {[
-                            { value: '500+', label: 'Doctors' },
-                            { value: '10K+', label: 'Patients' },
-                            { value: '50K+', label: 'Appointments' },
-                        ].map((stat) => (
-                            <div key={stat.label}>
-                                <p className="text-3xl font-bold">{stat.value}</p>
-                                <p className="text-sm text-blue-200">{stat.label}</p>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
 
