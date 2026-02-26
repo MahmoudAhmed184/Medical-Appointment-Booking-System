@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { FiEdit2 } from "react-icons/fi";
 import PatientNavbar from "../components/PatientNavbar";
 import {
   getPatientProfileApi,
@@ -164,7 +165,7 @@ export default function PatientProfile() {
           <div className="relative">
             <img src={profile.image || PATIENT_DEFAULT_AVATAR} className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md" />
             <button onClick={() => handleEdit("image")} className="absolute bottom-0 right-0 bg-white dark:bg-slate-700 p-1.5 rounded-full shadow border hover:text-blue-500 transition">
-              <span className="material-icons text-sm">edit</span>
+              <FiEdit2 className="text-sm" />
             </button>
           </div>
 

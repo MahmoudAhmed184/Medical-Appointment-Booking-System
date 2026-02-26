@@ -1,6 +1,4 @@
-import { FaPhoneAlt } from "react-icons/fa";
-import { MdEmail } from "react-icons/md";
-import { FiX } from "react-icons/fi";
+import { FiPhone, FiMail, FiX } from "react-icons/fi";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -302,11 +300,11 @@ export default function DoctorPage() {
             )}
             <div className="flex flex-col sm:flex-row gap-4 mt-4 justify-center">
               <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                <MdEmail className="text-blue-500" />
+                <FiMail className="text-blue-500" />
                 <span>{doctor.email}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                <FaPhoneAlt className="text-blue-500" />
+                <FiPhone className="text-blue-500" />
                 <span>{doctor.phone}</span>
               </div>
             </div>
