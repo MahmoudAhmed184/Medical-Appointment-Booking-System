@@ -1,5 +1,6 @@
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
+import { FiX } from "react-icons/fi";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -234,7 +235,7 @@ export default function DoctorPage() {
         <p>Doctor not found.</p>
       </div>
     );
-   }
+  }
 
   const handleConfirmAppointment = async () => {
     if (!doctor?.id || !selectedDate || !selectedStartTime || !selectedEndTime || reason.trim().length < 10) {
@@ -338,7 +339,7 @@ export default function DoctorPage() {
                   }}
                   className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
                 >
-                  ✕
+                  <FiX className="text-xl" />
                 </button>
               </div>
 
@@ -429,14 +430,13 @@ export default function DoctorPage() {
                   !selectedEndTime ||
                   reason.trim().length < 10
                 }
-                className={`w-full py-2 rounded-lg font-semibold transition ${
-                  selectedDate &&
+                className={`w-full py-2 rounded-lg font-semibold transition ${selectedDate &&
                   selectedStartTime &&
                   selectedEndTime &&
                   reason.trim().length >= 10
-                    ? "bg-[#137fec] text-white hover:bg-[#137fec]/90"
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                }`}
+                  ? "bg-[#137fec] text-white hover:bg-[#137fec]/90"
+                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  }`}
                 onClick={handleConfirmAppointment}
               >
                 {isSubmitting ? 'Booking...' : 'Confirm Appointment'}
@@ -465,6 +465,6 @@ export default function DoctorPage() {
       )}
     </div>
 
-    
+
   );
 }

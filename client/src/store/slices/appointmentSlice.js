@@ -10,7 +10,7 @@ export const fetchMyAppointments = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const { data } = await getMyAppointmentsApi();
-            return data?.appointments || [];
+            return data?.data || [];
         } catch (error) {
             return rejectWithValue(
                 error?.response?.data?.message || 'Failed to load appointments'
