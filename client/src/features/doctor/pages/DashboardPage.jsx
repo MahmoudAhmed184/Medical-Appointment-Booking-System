@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { FiClipboard, FiClock, FiCheckCircle, FiAward, FiCalendar } from 'react-icons/fi';
+import { getStatusClasses } from '../../../shared/utils/statusBadge';
 import useAppointments from '../hooks/useAppointments';
 
 const STAT_CARDS = [
@@ -8,14 +9,6 @@ const STAT_CARDS = [
     { key: 'confirmed', label: 'Confirmed', icon: <FiCheckCircle />, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/40', border: 'border-green-100 dark:border-green-800' },
     { key: 'completed', label: 'Completed', icon: <FiAward />, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/40', border: 'border-purple-100 dark:border-purple-800' },
 ];
-
-const STATUS_STYLES = {
-    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
-    confirmed: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-    completed: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
-    cancelled: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
-    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-};
 
 export default function DashboardPage() {
     const { appointments, loading, error } = useAppointments();
@@ -148,7 +141,7 @@ export default function DashboardPage() {
                                         </p>
                                     </div>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${STATUS_STYLES[appt.status] || 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusClasses(appt.status)}`}>
                                     {appt.status}
                                 </span>
                             </div>

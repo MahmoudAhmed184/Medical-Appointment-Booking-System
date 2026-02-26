@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getDoctorProfileApi, updateDoctorProfileApi } from '../services/doctorApi';
 import { FiMail, FiPhone, FiMapPin, FiEdit2 } from 'react-icons/fi';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/Toast';
 
 export default function ProfilePage() {
     const [profile, setProfile] = useState(null);
@@ -9,12 +11,7 @@ export default function ProfilePage() {
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState({});
     const [saving, setSaving] = useState(false);
-    const [toast, setToast] = useState(null);
-
-    const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 4000);
-    };
+    const { toast, showToast } = useToast();
 
     const fetchProfile = async () => {
         setLoading(true);
@@ -282,14 +279,7 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Toast */}
-            {toast && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-                    <div className={`px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'}`}>
-                        {toast.message}
-                    </div>
-                </div>
-            )}
+            <Toast toast={toast} />
         </div>
     );
 }

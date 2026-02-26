@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import useAvailability from '../hooks/useAvailability';
 import { FiClock, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/Toast';
 
 const DAYS = [
     { value: 0, label: 'Sunday' },
@@ -28,13 +30,8 @@ export default function AvailabilityPage() {
     const [editingSlot, setEditingSlot] = useState(null);
     const [formData, setFormData] = useState({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' });
     const [formError, setFormError] = useState('');
-    const [toast, setToast] = useState(null);
+    const { toast, showToast } = useToast();
     const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-    const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 4000);
-    };
 
     const handleOpenAdd = () => {
         setEditingSlot(null);
@@ -261,14 +258,7 @@ export default function AvailabilityPage() {
                 </div>
             )}
 
-            {/* Toast */}
-            {toast && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-                    <div className={`px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'}`}>
-                        {toast.message}
-                    </div>
-                </div>
-            )}
+            <Toast toast={toast} />
         </div>
     );
 }

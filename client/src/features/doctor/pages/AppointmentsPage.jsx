@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import useAppointments from '../hooks/useAppointments';
 import AppointmentCard from '../components/AppointmentCard';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/Toast';
 
 const TABS = [
     { label: 'All', value: 'all' },
@@ -14,12 +16,7 @@ const TABS = [
 export default function AppointmentsPage() {
     const { appointments, loading, error, approve, reject, complete, saveNotes } = useAppointments();
     const [activeTab, setActiveTab] = useState('all');
-    const [toast, setToast] = useState(null);
-
-    const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 4000);
-    };
+    const { toast, showToast } = useToast();
 
     const filteredAppointments = activeTab === 'all'
         ? appointments
@@ -123,14 +120,7 @@ export default function AppointmentsPage() {
                     ))
             )}
 
-            {/* Toast */}
-            {toast && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-                    <div className={`px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'}`}>
-                        {toast.message}
-                    </div>
-                </div>
-            )}
+            <Toast toast={toast} />
         </div>
     );
 }
