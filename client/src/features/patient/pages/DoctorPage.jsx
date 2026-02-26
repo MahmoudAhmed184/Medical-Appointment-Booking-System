@@ -16,12 +16,14 @@ import {
   setShowConfirmModal,
   setShowSlots,
 } from "../../../store/slices/patientBookingSlice";
+import {
+  TIME_STEP_MINUTES,
+  MAX_APPOINTMENT_DURATION_MINUTES,
+  DOCTOR_DEFAULT_AVATAR,
+  PATIENT_DEFAULT_AVATAR,
+} from "../../../shared/utils/constants";
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const TIME_STEP_MINUTES = 15;
-const MAX_APPOINTMENT_DURATION_MINUTES = 60;
-const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
-const PATIENT_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/girl?username=patient';
 
 const toMinutes = (value) => {
   const [hours, minutes] = String(value || '').split(':').map(Number);

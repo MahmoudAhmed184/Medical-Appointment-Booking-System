@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getDoctorsApi } from '../../features/patient/services/patientApi';
-
-const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
+import { DOCTOR_DEFAULT_AVATAR } from '../../shared/utils/constants';
 
 const normalizeAvailability = (availability) =>
     Array.from(

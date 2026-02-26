@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { FiLogOut, FiSun, FiMoon, FiActivity } from 'react-icons/fi';
 import { useTheme } from '../../../shared/context/ThemeContext';
-
-const PATIENT_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/girl?username=patient';
+import { PATIENT_DEFAULT_AVATAR } from '../../../shared/utils/constants';
 
 const tabClass = (isActive) =>
   isActive

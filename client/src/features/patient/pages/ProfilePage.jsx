@@ -5,8 +5,8 @@ import {
   getPatientProfileApi,
   updatePatientProfileApi,
 } from "../services/patientApi";
+import { PATIENT_DEFAULT_AVATAR } from "../../../shared/utils/constants";
 
-const PATIENT_DEFAULT_AVATAR = "https://avatar.iran.liara.run/public/girl?username=patient";
 const PHONE_REGEX = /^01\d{9}$/;
 
 const toLocalDateInputValue = (value) => {

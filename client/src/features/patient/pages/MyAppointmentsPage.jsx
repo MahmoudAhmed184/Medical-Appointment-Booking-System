@@ -9,10 +9,11 @@ import { useEffect, useMemo, useState } from 'react';
 import AppointmentList from '../components/AppointmentList';
 import PatientNavbar from '../components/PatientNavbar';
 import { getDoctorByIdApi, getPatientProfileApi } from '../services/patientApi';
-
-const TIME_STEP_MINUTES = 15;
-const MAX_APPOINTMENT_DURATION_MINUTES = 60;
-const PATIENT_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/girl?username=patient';
+import {
+  TIME_STEP_MINUTES,
+  MAX_APPOINTMENT_DURATION_MINUTES,
+  PATIENT_DEFAULT_AVATAR,
+} from '../../../shared/utils/constants';
 
 const toMinutes = (value) => {
   const [hours, minutes] = String(value || '').split(':').map(Number);
