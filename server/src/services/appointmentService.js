@@ -287,6 +287,13 @@ const bookAppointment = async (userId, { doctorId, date, startTime, endTime, rea
         throw new ApiError(400, 'This time slot is already booked');
     }
 
+    await Appointment.findOneAndDelete({
+        doctorId,
+        date: dayStart,
+        startTime,
+        status: APPOINTMENT_STATUS.CANCELLED,
+    });
+
     const appointment = await Appointment.create({
         doctorId,
         patientId: patient._id,
@@ -458,6 +465,14 @@ const reschedulePatientAppointment = async (appointmentId, userId, data) => {
     if (conflicting) {
         throw new ApiError(400, 'This time slot is already booked');
     }
+
+    await Appointment.findOneAndDelete({
+        _id: { $ne: appointment._id },
+        doctorId: appointment.doctorId,
+        date: dayStart,
+        startTime,
+        status: APPOINTMENT_STATUS.CANCELLED,
+    });
 
     appointment.date = dayStart;
     appointment.startTime = startTime;
