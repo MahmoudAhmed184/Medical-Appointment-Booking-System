@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 import { useTheme } from '../shared/context/ThemeContext';
-import { FiBarChart2, FiCalendar, FiClipboard, FiUser, FiActivity, FiLogOut } from 'react-icons/fi';
+import { FiBarChart2, FiCalendar, FiClipboard, FiUser, FiActivity, FiLogOut, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
 
 const navItems = [
     { text: 'Dashboard', icon: <FiBarChart2 />, path: '/doctor' },
@@ -130,9 +130,7 @@ const DoctorLayout = () => {
                         onClick={() => setSidebarOpen(true)}
                         className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
+                        <FiMenu className="w-6 h-6" />
                     </button>
                     <span className="ml-3 text-lg font-bold text-blue-600 flex items-center gap-2">
                         <FiActivity /> MediBook
@@ -145,9 +143,9 @@ const DoctorLayout = () => {
                     title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
                     {darkMode ? (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+                        <FiSun className="w-5 h-5" />
                     ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                        <FiMoon className="w-5 h-5" />
                     )}
                 </button>
             </div>
@@ -178,12 +176,12 @@ const DoctorLayout = () => {
                     >
                         {darkMode ? (
                             <>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+                                <FiSun className="w-4 h-4" />
                                 Light Mode
                             </>
                         ) : (
                             <>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                                <FiMoon className="w-4 h-4" />
                                 Dark Mode
                             </>
                         )}
