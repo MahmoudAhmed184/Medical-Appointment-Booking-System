@@ -9,109 +9,15 @@ import { useEffect, useMemo, useState } from 'react';
 import AppointmentList from '../components/AppointmentList';
 import PatientNavbar from '../components/PatientNavbar';
 import { getDoctorByIdApi, getPatientProfileApi } from '../services/patientApi';
-
-const TIME_STEP_MINUTES = 15;
-const MAX_APPOINTMENT_DURATION_MINUTES = 60;
-const PATIENT_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/girl?username=patient';
-
-const toMinutes = (value) => {
-  const [hours, minutes] = String(value || '').split(':').map(Number);
-  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
-  return hours * 60 + minutes;
-};
-
-const toTimeString = (minutes) => {
-  const h = String(Math.floor(minutes / 60)).padStart(2, '0');
-  const m = String(minutes % 60).padStart(2, '0');
-  return `${h}:${m}`;
-};
-
-const toLocalDateInputValue = (value) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const normalizeAvailability = (availability) =>
-  Array.from(
-    new Map(
-      (Array.isArray(availability) ? availability : [])
-        .map((slot) => ({
-          dayOfWeek: Number(slot?.dayOfWeek),
-          startTime: slot?.startTime || '',
-          endTime: slot?.endTime || '',
-        }))
-        .filter(
-          (slot) =>
-            Number.isInteger(slot.dayOfWeek) &&
-            slot.dayOfWeek >= 0 &&
-            slot.dayOfWeek <= 6 &&
-            slot.startTime &&
-            slot.endTime
-        )
-        .map((slot) => [`${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}`, slot])
-    ).values()
-  ).sort((a, b) => {
-    if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
-    return String(a.startTime).localeCompare(String(b.startTime));
-  });
-
-const getDayAvailability = (availability, dateValue) => {
-  if (!dateValue) return [];
-  const selectedDate = new Date(dateValue);
-  if (Number.isNaN(selectedDate.getTime())) return [];
-  const selectedDay = selectedDate.getDay();
-  return availability.filter((slot) => Number(slot.dayOfWeek) === selectedDay);
-};
-
-const getStartOptions = (availability, dateValue) => {
-  const daySlots = getDayAvailability(availability, dateValue);
-  const options = new Set();
-
-  daySlots.forEach((slot) => {
-    const slotStart = toMinutes(slot.startTime);
-    const slotEnd = toMinutes(slot.endTime);
-    if (slotStart === null || slotEnd === null || slotEnd <= slotStart) return;
-
-    for (let minute = slotStart; minute < slotEnd; minute += TIME_STEP_MINUTES) {
-      options.add(toTimeString(minute));
-    }
-  });
-
-  return Array.from(options).sort();
-};
-
-const getEndOptions = (availability, dateValue, selectedStartTime) => {
-  if (!selectedStartTime) return [];
-  const startMinutes = toMinutes(selectedStartTime);
-  if (startMinutes === null) return [];
-
-  const daySlots = getDayAvailability(availability, dateValue);
-  const options = new Set();
-
-  daySlots.forEach((slot) => {
-    const slotStart = toMinutes(slot.startTime);
-    const slotEnd = toMinutes(slot.endTime);
-    if (slotStart === null || slotEnd === null || slotEnd <= slotStart) return;
-    if (startMinutes < slotStart || startMinutes >= slotEnd) return;
-
-    const maxEnd = Math.min(slotEnd, startMinutes + MAX_APPOINTMENT_DURATION_MINUTES);
-    for (
-      let minute = startMinutes + TIME_STEP_MINUTES;
-      minute <= maxEnd;
-      minute += TIME_STEP_MINUTES
-    ) {
-      options.add(toTimeString(minute));
-    }
-  });
-
-  return Array.from(options).sort();
-};
+import {
+  PATIENT_DEFAULT_AVATAR,
+} from '../../../shared/utils/constants';
+import {
+  toLocalDateInputValue,
+  normalizeAvailability,
+  getStartOptions,
+  getEndOptions,
+} from '../../../shared/utils/timeSlots';
 
 export default function MyAppointmentsPage() {
   const dispatch = useDispatch();

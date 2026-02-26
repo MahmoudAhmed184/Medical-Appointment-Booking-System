@@ -2,7 +2,6 @@ import axiosInstance from '../../../shared/api/axiosInstance';
 
 export const getDoctorsApi = (params) => axiosInstance.get('/doctors', { params });
 export const getDoctorByIdApi = (id) => axiosInstance.get(`/doctors/${id}`);
-export const getAvailableSlotsApi = (doctorId, date) => axiosInstance.get(`/doctors/${doctorId}/available-slots`, { params: { date } });
 export const bookAppointmentApi = (data) => axiosInstance.post('/patients/appointments', data);
 export const getMyAppointmentsApi = () => axiosInstance.get('/patients/appointments');
 export const cancelAppointmentApi = (id) => axiosInstance.patch(`/patients/appointments/${id}/cancel`);

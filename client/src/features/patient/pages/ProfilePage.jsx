@@ -1,22 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+import { FiEdit2 } from "react-icons/fi";
 import PatientNavbar from "../components/PatientNavbar";
 import {
   getPatientProfileApi,
   updatePatientProfileApi,
 } from "../services/patientApi";
+import { PATIENT_DEFAULT_AVATAR } from "../../../shared/utils/constants";
+import { toLocalDateInputValue } from "../../../shared/utils/timeSlots";
 
-const PATIENT_DEFAULT_AVATAR = "https://avatar.iran.liara.run/public/girl?username=patient";
 const PHONE_REGEX = /^01\d{9}$/;
-
-const toLocalDateInputValue = (value) => {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 const getApiErrorMessage = (err) =>
   err?.response?.data?.error?.message ||
@@ -164,7 +156,7 @@ export default function PatientProfile() {
           <div className="relative">
             <img src={profile.image || PATIENT_DEFAULT_AVATAR} className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md" />
             <button onClick={() => handleEdit("image")} className="absolute bottom-0 right-0 bg-white dark:bg-slate-700 p-1.5 rounded-full shadow border hover:text-blue-500 transition">
-              <span className="material-icons text-sm">edit</span>
+              <FiEdit2 className="text-sm" />
             </button>
           </div>
 

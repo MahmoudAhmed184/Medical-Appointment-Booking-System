@@ -20,8 +20,6 @@ axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error?.response?.status === 401) {
-            // Temporary for patient-module testing until auth frontend is ready.
-            // Do not hard-redirect globally; let pages handle unauthorized UI.
             error.isUnauthorized = true;
         }
 

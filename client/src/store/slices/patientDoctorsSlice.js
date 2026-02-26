@@ -1,35 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getDoctorsApi } from '../../features/patient/services/patientApi';
-
-const DOCTOR_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/boy?username=doctor';
-
-const normalizeAvailability = (availability) =>
-    Array.from(
-        new Map(
-            (Array.isArray(availability) ? availability : [])
-                .map((slot) => ({
-                    dayOfWeek: Number(slot?.dayOfWeek),
-                    startTime: slot?.startTime || '',
-                    endTime: slot?.endTime || '',
-                }))
-                .filter(
-                    (slot) =>
-                        Number.isInteger(slot.dayOfWeek) &&
-                        slot.dayOfWeek >= 0 &&
-                        slot.dayOfWeek <= 6 &&
-                        slot.startTime &&
-                        slot.endTime
-                )
-                .map((slot) => [
-                    `${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}`,
-                    slot,
-                ])
-        ).values()
-    )
-        .sort((a, b) => {
-            if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
-            return String(a.startTime).localeCompare(String(b.startTime));
-        });
+import { DOCTOR_DEFAULT_AVATAR } from '../../shared/utils/constants';
+import { normalizeAvailability } from '../../shared/utils/timeSlots';
 
 const mapDoctor = (doctor) => ({
     id: doctor?._id || doctor?.id,

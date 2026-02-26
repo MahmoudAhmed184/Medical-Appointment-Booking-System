@@ -1,6 +1,5 @@
 import React from 'react'
-import { FaCalendarAlt } from "react-icons/fa";
-import { IoTime } from "react-icons/io5";
+import { FiCalendar, FiClock } from "react-icons/fi";
 
 export default function BookConfirmModal({
   doctor,
@@ -32,9 +31,9 @@ export default function BookConfirmModal({
       </p>
 
       <div className="text-md text-slate-500 dark:text-slate-400">
-        <FaCalendarAlt className="inline mr-2 text-blue-500" /> {selectedDate}  
+        <FiCalendar className="inline mr-2 text-blue-500" /> {selectedDate}  
         <br/>
-        <IoTime className="inline mr-2 text-blue-500"/> {bookedTime}
+        <FiClock className="inline mr-2 text-blue-500"/> {bookedTime}
       </div>
 
       {reason && (

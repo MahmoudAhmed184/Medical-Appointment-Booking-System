@@ -1,8 +1,4 @@
-const getStatusClass = (status) => {
-  if (status === 'Confirmed') return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-  if (status === 'Pending') return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-  return 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300';
-};
+import { getStatusClasses } from '../../../shared/utils/statusBadge';
 
 const AppointmentCard = ({ appointment, onCancel, onReschedule }) => {
   const normalizedStatus = String(appointment?.rawStatus || '').toLowerCase();
@@ -24,7 +20,7 @@ const AppointmentCard = ({ appointment, onCancel, onReschedule }) => {
         <h3 className="text-lg font-bold dark:text-white">{appointment.doctorName}</h3>
         <p className="text-sm text-[#137fec]">{appointment.specialty}</p>
         <p className="mt-1 text-slate-500 dark:text-slate-400">{appointment.date}</p>
-        <span className={`mt-2 inline-block px-3 py-1 rounded-lg text-base font-semibold ${getStatusClass(appointment.status)}`}>
+        <span className={`mt-2 inline-block px-3 py-1 rounded-lg text-base font-semibold ${getStatusClasses(appointment.status)}`}>
           {appointment.status}
         </span>
 

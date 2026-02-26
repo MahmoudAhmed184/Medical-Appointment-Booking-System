@@ -1,13 +1,6 @@
 import { useState } from 'react';
 import { FiCalendar, FiClock, FiCheck, FiX, FiEdit } from 'react-icons/fi';
-
-const STATUS_STYLES = {
-    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
-    confirmed: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-    completed: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
-    cancelled: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
-    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-};
+import { getStatusClasses } from '../../../shared/utils/statusBadge';
 
 const BORDER_COLORS = {
     pending: 'border-l-yellow-400',
@@ -24,7 +17,7 @@ const AppointmentCard = ({ appointment, onApprove, onReject, onComplete, onSaveN
 
     const patientName = appointment.patientId?.userId?.name || appointment.patient?.user?.name || 'Patient';
     const patientEmail = appointment.patientId?.userId?.email || appointment.patient?.user?.email || '';
-    const statusStyle = STATUS_STYLES[appointment.status] || STATUS_STYLES.pending;
+    const statusStyle = getStatusClasses(appointment.status);
     const borderColor = BORDER_COLORS[appointment.status] || 'border-l-gray-300';
 
     const handleSaveNotes = async () => {

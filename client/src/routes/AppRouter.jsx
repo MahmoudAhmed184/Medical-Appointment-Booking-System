@@ -1,24 +1,18 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-// Layouts
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import DoctorLayout from '../layouts/DoctorLayout';
 import PatientLayout from '../layouts/PatientLayout';
 
-// Shared
 import ProtectedRoute from '../shared/components/ProtectedRoute';
 
-// Auth pages
 import { LoginPage, RegisterPage } from '../features/auth';
 
-// Admin pages
 import { AdminDashboardPage, UsersPage, SpecialtiesPage, AdminAppointmentsPage } from '../features/admin';
 
-// Doctor pages
 import { DoctorDashboardPage, AvailabilityPage, DoctorAppointmentsPage, DoctorProfilePage } from '../features/doctor';
 
-// Patient pages
 import { PatientDashboardPage, DoctorPage, MyAppointmentsPage, PatientProfilePage } from '../features/patient';
 
 const AppRouter = () => {

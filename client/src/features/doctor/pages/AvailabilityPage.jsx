@@ -1,6 +1,14 @@
-import { useState } from 'react';
-import useAvailability from '../hooks/useAvailability';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    fetchAvailability,
+    addAvailabilitySlot,
+    updateAvailabilitySlot,
+    deleteAvailabilitySlot,
+} from '../../../store/slices/doctorAvailabilitySlice';
 import { FiClock, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/Toast';
 
 const DAYS = [
     { value: 0, label: 'Sunday' },
@@ -23,18 +31,18 @@ const DAY_COLORS = {
 };
 
 export default function AvailabilityPage() {
-    const { slots, loading, error, addSlot, updateSlot, removeSlot } = useAvailability();
+    const dispatch = useDispatch();
+    const { slots, loading, error } = useSelector((state) => state.doctorAvailability);
     const [showForm, setShowForm] = useState(false);
     const [editingSlot, setEditingSlot] = useState(null);
     const [formData, setFormData] = useState({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' });
     const [formError, setFormError] = useState('');
-    const [toast, setToast] = useState(null);
+    const { toast, showToast } = useToast();
     const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-    const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 4000);
-    };
+    useEffect(() => {
+        dispatch(fetchAvailability());
+    }, [dispatch]);
 
     const handleOpenAdd = () => {
         setEditingSlot(null);
@@ -65,27 +73,34 @@ export default function AvailabilityPage() {
 
         let result;
         if (editingSlot) {
-            result = await updateSlot(editingSlot._id, { startTime: formData.startTime, endTime: formData.endTime });
+            result = await dispatch(updateAvailabilitySlot({
+                slotId: editingSlot._id,
+                updates: { startTime: formData.startTime, endTime: formData.endTime },
+            }));
         } else {
-            result = await addSlot({
+            result = await dispatch(addAvailabilitySlot({
                 dayOfWeek: formData.dayOfWeek,
                 startTime: formData.startTime,
                 endTime: formData.endTime,
-            });
+            }));
         }
 
-        if (result.success) {
+        if (result.meta.requestStatus === 'fulfilled') {
             setShowForm(false);
             showToast(editingSlot ? 'Slot updated successfully' : 'Slot added successfully');
         } else {
-            setFormError(result.message);
+            setFormError(result.payload);
         }
     };
 
     const handleDelete = async () => {
-        const result = await removeSlot(deleteConfirm);
+        const result = await dispatch(deleteAvailabilitySlot(deleteConfirm));
         setDeleteConfirm(null);
-        showToast(result.success ? 'Slot deleted' : result.message, result.success ? 'success' : 'error');
+        if (deleteAvailabilitySlot.fulfilled.match(result)) {
+            showToast('Slot deleted', 'success');
+        } else {
+            showToast(result.payload || 'Failed to delete slot', 'error');
+        }
     };
 
     const slotsByDay = DAYS
@@ -261,14 +276,7 @@ export default function AvailabilityPage() {
                 </div>
             )}
 
-            {/* Toast */}
-            {toast && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-                    <div className={`px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'}`}>
-                        {toast.message}
-                    </div>
-                </div>
-            )}
+            <Toast toast={toast} />
         </div>
     );
 }

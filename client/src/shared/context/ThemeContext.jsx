@@ -12,8 +12,7 @@ const getInitialMode = () => {
     try {
         const stored = localStorage.getItem('darkMode');
         if (stored !== null) return stored === 'true';
-    } catch { /* ignore */ }
-    // Default to light mode
+    } catch {  }
     return false;
 };
 
@@ -29,7 +28,7 @@ export const ThemeProvider = ({ children }) => {
         }
         try {
             localStorage.setItem('darkMode', String(darkMode));
-        } catch { /* ignore */ }
+        } catch {  }
     }, [darkMode]);
 
     const toggleDarkMode = () => setDarkMode((prev) => !prev);
