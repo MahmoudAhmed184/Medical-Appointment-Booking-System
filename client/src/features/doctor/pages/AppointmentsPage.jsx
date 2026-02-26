@@ -1,5 +1,12 @@
-import { useState } from 'react';
-import useAppointments from '../hooks/useAppointments';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    fetchDoctorAppointments,
+    approveAppointment,
+    rejectAppointment,
+    completeAppointment,
+    saveAppointmentNotes,
+} from '../../../store/slices/doctorAppointmentsSlice';
 import AppointmentCard from '../components/AppointmentCard';
 import { useToast } from '../../../shared/hooks/useToast';
 import Toast from '../../../shared/components/Toast';
@@ -14,34 +21,40 @@ const TABS = [
 ];
 
 export default function AppointmentsPage() {
-    const { appointments, loading, error, approve, reject, complete, saveNotes } = useAppointments();
+    const dispatch = useDispatch();
+    const { appointments, loading, error } = useSelector((state) => state.doctorAppointments);
     const [activeTab, setActiveTab] = useState('all');
     const { toast, showToast } = useToast();
+
+    useEffect(() => {
+        dispatch(fetchDoctorAppointments());
+    }, [dispatch]);
 
     const filteredAppointments = activeTab === 'all'
         ? appointments
         : appointments.filter((a) => a.status === activeTab);
 
     const handleAction = async (action, id) => {
-        let result;
-        if (action === 'approve') result = await approve(id);
-        else if (action === 'reject') result = await reject(id);
-        else if (action === 'complete') result = await complete(id);
-        else return;
+        const thunks = { approve: approveAppointment, reject: rejectAppointment, complete: completeAppointment };
+        const thunk = thunks[action];
+        if (!thunk) return;
 
-        showToast(
-            result.success ? `Appointment ${action}d successfully` : result.message || `Failed to ${action}`,
-            result.success ? 'success' : 'error'
-        );
+        const result = await dispatch(thunk(id));
+        if (thunk.fulfilled.match(result)) {
+            showToast(`Appointment ${action}d successfully`, 'success');
+        } else {
+            showToast(result.payload || `Failed to ${action}`, 'error');
+        }
     };
 
     const handleSaveNotes = async (id, notes) => {
-        const result = await saveNotes(id, notes);
-        showToast(
-            result.success ? 'Notes saved successfully' : result.message || 'Failed to save notes',
-            result.success ? 'success' : 'error'
-        );
-        return result;
+        const result = await dispatch(saveAppointmentNotes({ id, notes }));
+        if (saveAppointmentNotes.fulfilled.match(result)) {
+            showToast('Notes saved successfully', 'success');
+            return { success: true };
+        }
+        showToast(result.payload || 'Failed to save notes', 'error');
+        return { success: false };
     };
 
     const statusCounts = {

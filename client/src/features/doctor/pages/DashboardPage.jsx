@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FiClipboard, FiClock, FiCheckCircle, FiAward, FiCalendar } from 'react-icons/fi';
 import { getStatusClasses } from '../../../shared/utils/statusBadge';
-import useAppointments from '../hooks/useAppointments';
+import { fetchDoctorAppointments } from '../../../store/slices/doctorAppointmentsSlice';
 
 const STAT_CARDS = [
     { key: 'total', label: 'Total Appointments', icon: <FiClipboard />, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/40', border: 'border-blue-100 dark:border-blue-800' },
@@ -11,8 +13,13 @@ const STAT_CARDS = [
 ];
 
 export default function DashboardPage() {
-    const { appointments, loading, error } = useAppointments();
+    const dispatch = useDispatch();
+    const { appointments, loading, error } = useSelector((state) => state.doctorAppointments);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        dispatch(fetchDoctorAppointments());
+    }, [dispatch]);
 
     const stats = {
         total: appointments.length,

@@ -1,34 +1,20 @@
 import { useState, useEffect } from 'react';
-import { getDoctorProfileApi, updateDoctorProfileApi } from '../services/doctorApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchDoctorProfile, updateDoctorProfile } from '../../../store/slices/doctorProfileSlice';
 import { FiMail, FiPhone, FiMapPin, FiEdit2 } from 'react-icons/fi';
 import { useToast } from '../../../shared/hooks/useToast';
 import Toast from '../../../shared/components/Toast';
 
 export default function ProfilePage() {
-    const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const dispatch = useDispatch();
+    const { profile, loading, error, saving } = useSelector((state) => state.doctorProfile);
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState({});
-    const [saving, setSaving] = useState(false);
     const { toast, showToast } = useToast();
 
-    const fetchProfile = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { data } = await getDoctorProfileApi();
-            setProfile(data.data);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to load profile');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchProfile();
-    }, []);
+        dispatch(fetchDoctorProfile());
+    }, [dispatch]);
 
     const handleEdit = () => {
         setFormData({
@@ -49,23 +35,12 @@ export default function ProfilePage() {
 
     const handleSave = async (e) => {
         e.preventDefault();
-        setSaving(true);
-        try {
-            const { data } = await updateDoctorProfileApi(formData);
-            setProfile(data.data);
+        const result = await dispatch(updateDoctorProfile(formData));
+        if (updateDoctorProfile.fulfilled.match(result)) {
             setEditing(false);
-            try {
-                const user = JSON.parse(localStorage.getItem('user')) || {};
-                if (formData.name) user.name = formData.name;
-                if (formData.email) user.email = formData.email;
-                localStorage.setItem('user', JSON.stringify(user));
-                window.dispatchEvent(new Event('user-updated'));
-            } catch {  }
             showToast('Profile updated successfully');
-        } catch (err) {
-            showToast(err.response?.data?.message || err.response?.data?.error?.message || 'Failed to update profile', 'error');
-        } finally {
-            setSaving(false);
+        } else {
+            showToast(result.payload || 'Failed to update profile', 'error');
         }
     };
 
