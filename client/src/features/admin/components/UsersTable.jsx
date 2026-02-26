@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import dayjs from 'dayjs';
+import { FiUsers } from 'react-icons/fi';
 
 const roleBadge = {
-    admin: 'bg-blue-100 text-blue-700',
-    doctor: 'bg-blue-100 text-blue-700',
-    patient: 'bg-green-100 text-green-700',
+    admin: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+    doctor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+    patient: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
 };
 
 const UsersTable = ({
@@ -34,8 +35,8 @@ const UsersTable = ({
 
     if (!users.length) {
         return (
-            <div className="text-center py-16 text-gray-500">
-                <span className="text-4xl block mb-3">👥</span>
+            <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                <span className="text-4xl block mb-3"><FiUsers className="mx-auto" /></span>
                 <p className="text-lg font-medium">No users found</p>
                 <p className="text-sm">Try adjusting your filters</p>
             </div>
@@ -48,7 +49,7 @@ const UsersTable = ({
             <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b border-gray-200 text-left text-gray-500 uppercase text-xs tracking-wider">
+                        <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wider">
                             <th className="pb-3 pr-4 font-medium">Name</th>
                             <th className="pb-3 pr-4 font-medium">Email</th>
                             <th className="pb-3 pr-4 font-medium">Role</th>
@@ -57,43 +58,43 @@ const UsersTable = ({
                             <th className="pb-3 font-medium text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                         {users.map((user) => (
-                            <tr key={user._id} className="hover:bg-gray-50/50 transition-colors">
+                            <tr key={user._id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
                                 <td className="py-3 pr-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
+                                        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300">
                                             {(user.name || '?').charAt(0).toUpperCase()}
                                         </div>
-                                        <span className="font-medium text-gray-800">{user.name}</span>
+                                        <span className="font-medium text-gray-800 dark:text-gray-100">{user.name}</span>
                                     </div>
                                 </td>
-                                <td className="py-3 pr-4 text-gray-600">{user.email}</td>
+                                <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">{user.email}</td>
                                 <td className="py-3 pr-4">
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${roleBadge[user.role] || 'bg-gray-100 text-gray-700'}`}>
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${roleBadge[user.role] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'}`}>
                                         {user.role}
                                     </span>
                                 </td>
                                 <td className="py-3 pr-4">
                                     <div className="flex gap-1.5">
                                         {user.isBlocked && (
-                                            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
                                                 Blocked
                                             </span>
                                         )}
                                         {!user.isApproved && !user.isBlocked && (
-                                            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                                            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300">
                                                 Pending
                                             </span>
                                         )}
                                         {user.isApproved && !user.isBlocked && (
-                                            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
                                                 Active
                                             </span>
                                         )}
                                     </div>
                                 </td>
-                                <td className="py-3 pr-4 text-gray-500">
+                                <td className="py-3 pr-4 text-gray-500 dark:text-gray-400">
                                     {dayjs(user.createdAt).format('MMM D, YYYY')}
                                 </td>
                                 <td className="py-3 text-right">
@@ -154,36 +155,36 @@ const UsersTable = ({
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
                 {users.map((user) => (
-                    <div key={user._id} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+                    <div key={user._id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 space-y-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
+                                <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300">
                                     {(user.name || '?').charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <p className="font-medium text-gray-800">{user.name}</p>
-                                    <p className="text-xs text-gray-500">{user.email}</p>
+                                    <p className="font-medium text-gray-800 dark:text-gray-100">{user.name}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                                 </div>
                             </div>
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${roleBadge[user.role] || 'bg-gray-100 text-gray-700'}`}>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${roleBadge[user.role] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'}`}>
                                 {user.role}
                             </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
                             {user.isBlocked && (
-                                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">Blocked</span>
+                                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 font-medium">Blocked</span>
                             )}
                             {!user.isApproved && !user.isBlocked && (
-                                <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">Pending</span>
+                                <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 font-medium">Pending</span>
                             )}
                             {user.isApproved && !user.isBlocked && (
-                                <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Active</span>
+                                <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 font-medium">Active</span>
                             )}
-                            <span className="text-gray-400 ml-auto">
+                            <span className="text-gray-400 dark:text-gray-500 ml-auto">
                                 {dayjs(user.createdAt).format('MMM D, YYYY')}
                             </span>
                         </div>
-                        <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-100">
+                        <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-100 dark:border-gray-700">
                             {!user.isApproved && user.role === 'doctor' && (
                                 <button
                                     onClick={() => onApprove(user._id)}
@@ -236,8 +237,8 @@ const UsersTable = ({
 
             {/* Pagination */}
             {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-6">
-                    <p className="text-sm text-gray-500">
+                <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-700 mt-6">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                         Showing page {pagination.page} of {pagination.totalPages}{' '}
                         ({pagination.totalItems} total)
                     </p>
@@ -245,7 +246,7 @@ const UsersTable = ({
                         <button
                             onClick={() => onPageChange(pagination.page - 1)}
                             disabled={pagination.page <= 1}
-                            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                         >
                             Previous
                         </button>
@@ -273,7 +274,7 @@ const UsersTable = ({
                                         className={`px-3 py-1.5 text-sm rounded-lg border transition-colors cursor-pointer ${
                                             p === pagination.page
                                                 ? 'border-blue-600 bg-blue-600 text-white'
-                                                : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                                         }`}
                                     >
                                         {p}
@@ -283,7 +284,7 @@ const UsersTable = ({
                         <button
                             onClick={() => onPageChange(pagination.page + 1)}
                             disabled={pagination.page >= pagination.totalPages}
-                            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                         >
                             Next
                         </button>

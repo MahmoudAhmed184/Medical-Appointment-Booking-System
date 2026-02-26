@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { FiTag, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import useSpecialties from '../hooks/useSpecialties';
 import SpecialtyForm from '../components/SpecialtyForm';
 
@@ -66,8 +67,8 @@ const SpecialtiesPage = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Manage Specialties</h1>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage Specialties</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         Create, edit, and remove medical specialties
                     </p>
                 </div>
@@ -83,15 +84,15 @@ const SpecialtiesPage = () => {
 
             {/* Error banner */}
             {(error || formError) && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl text-sm">
                     {error || formError}
                 </div>
             )}
 
             {/* Create form */}
             {showForm && (
-                <div className="bg-white rounded-xl border border-gray-200 p-5">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                         New Specialty
                     </h2>
                     <SpecialtyForm
@@ -104,8 +105,8 @@ const SpecialtiesPage = () => {
 
             {/* Edit form */}
             {editingSpecialty && (
-                <div className="bg-white rounded-xl border border-blue-200 p-5">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-blue-200 dark:border-blue-800 p-5">
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                         Edit Specialty
                     </h2>
                     <SpecialtyForm
@@ -126,8 +127,8 @@ const SpecialtiesPage = () => {
 
             {/* Empty state */}
             {!loading && !specialties.length && (
-                <div className="text-center py-16 text-gray-500">
-                    <span className="text-4xl block mb-3">🏷️</span>
+                <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                    <span className="text-4xl block mb-3"><FiTag className="mx-auto" /></span>
                     <p className="text-lg font-medium">No specialties yet</p>
                     <p className="text-sm">Create your first medical specialty above</p>
                 </div>
@@ -139,21 +140,19 @@ const SpecialtiesPage = () => {
                     {specialties.map((specialty) => (
                         <div
                             key={specialty._id}
-                            className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-sm transition-shadow"
+                            className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
                         >
                             <div className="flex items-start justify-between mb-2">
-                                <h3 className="text-base font-semibold text-gray-800">
+                                <h3 className="text-base font-semibold text-gray-800 dark:text-white">
                                     {specialty.name}
                                 </h3>
                                 <div className="flex gap-1 ml-2 flex-shrink-0">
                                     <button
                                         onClick={() => handleEdit(specialty)}
-                                        className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                                        className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors cursor-pointer"
                                         title="Edit"
                                     >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
+                                        <FiEdit2 className="w-4 h-4" />
                                     </button>
                                     {confirmDelete === specialty._id ? (
                                         <div className="flex gap-1">
@@ -174,17 +173,15 @@ const SpecialtiesPage = () => {
                                     ) : (
                                         <button
                                             onClick={() => setConfirmDelete(specialty._id)}
-                                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors cursor-pointer"
                                             title="Delete"
                                         >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
+                                            <FiTrash2 className="w-4 h-4" />
                                         </button>
                                     )}
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-500 line-clamp-2">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                                 {specialty.description || 'No description provided'}
                             </p>
                         </div>
