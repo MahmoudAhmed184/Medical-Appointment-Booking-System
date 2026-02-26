@@ -1,3 +1,311 @@
-import { Typography } from '@mui/material';
-const AppointmentsPage = () => <Typography variant="h4">All Appointments</Typography>;
+import { useState, useCallback } from 'react';
+import dayjs from 'dayjs';
+import useAppointments from '../hooks/useAppointments';
+
+const statusOptions = [
+    { label: 'All Statuses', value: '' },
+    { label: 'Pending', value: 'pending' },
+    { label: 'Confirmed', value: 'confirmed' },
+    { label: 'Completed', value: 'completed' },
+    { label: 'Cancelled', value: 'cancelled' },
+    { label: 'Rejected', value: 'rejected' },
+];
+
+const statusStyles = {
+    pending: 'bg-yellow-100 text-yellow-700',
+    confirmed: 'bg-blue-100 text-blue-700',
+    completed: 'bg-green-100 text-green-700',
+    cancelled: 'bg-red-100 text-red-700',
+    rejected: 'bg-gray-100 text-gray-700',
+};
+
+const getDoctorName = (appt) => {
+    if (appt.doctorId?.userId?.name) return appt.doctorId.userId.name;
+    if (appt.doctorId?.name) return appt.doctorId.name;
+    return 'N/A';
+};
+
+const getPatientName = (appt) => {
+    if (appt.patientId?.userId?.name) return appt.patientId.userId.name;
+    if (appt.patientId?.name) return appt.patientId.name;
+    return 'N/A';
+};
+
+const getSpecialty = (appt) => {
+    if (appt.doctorId?.specialtyId?.name) return appt.doctorId.specialtyId.name;
+    return '';
+};
+
+const AppointmentsPage = () => {
+    const {
+        appointments,
+        pagination,
+        loading,
+        error,
+        filters,
+        setFilters,
+        setPage,
+    } = useAppointments();
+
+    const [startDate, setStartDate] = useState(filters.startDate || '');
+    const [endDate, setEndDate] = useState(filters.endDate || '');
+
+    const handleStatusChange = useCallback(
+        (e) => setFilters({ status: e.target.value }),
+        [setFilters]
+    );
+
+    const handleDateFilter = useCallback(
+        (e) => {
+            e.preventDefault();
+            setFilters({ startDate, endDate });
+        },
+        [startDate, endDate, setFilters]
+    );
+
+    const handleClearDates = useCallback(() => {
+        setStartDate('');
+        setEndDate('');
+        setFilters({ startDate: '', endDate: '' });
+    }, [setFilters]);
+
+    const handlePageChange = useCallback(
+        (page) => setPage(page),
+        [setPage]
+    );
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div>
+                <h1 className="text-2xl font-bold text-gray-800">All Appointments</h1>
+                <p className="text-sm text-gray-500 mt-1">
+                    View and monitor all appointments across the platform
+                </p>
+            </div>
+
+            {/* Error banner */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                    {error}
+                </div>
+            )}
+
+            {/* Filters */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <div className="flex flex-col lg:flex-row gap-3">
+                    {/* Status filter */}
+                    <select
+                        value={filters.status}
+                        onChange={handleStatusChange}
+                        className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white cursor-pointer"
+                    >
+                        {statusOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </select>
+
+                    {/* Date range */}
+                    <form onSubmit={handleDateFilter} className="flex flex-col sm:flex-row gap-2 flex-1">
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="Start date"
+                        />
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="End date"
+                        />
+                        <button
+                            type="submit"
+                            className="px-4 py-2.5 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors cursor-pointer"
+                        >
+                            Apply
+                        </button>
+                        {(startDate || endDate) && (
+                            <button
+                                type="button"
+                                onClick={handleClearDates}
+                                className="px-4 py-2.5 text-sm font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </form>
+                </div>
+            </div>
+
+            {/* Loading */}
+            {loading && (
+                <div className="flex items-center justify-center py-20">
+                    <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                </div>
+            )}
+
+            {/* Empty state */}
+            {!loading && !appointments.length && (
+                <div className="text-center py-16 text-gray-500">
+                    <span className="text-4xl block mb-3">📋</span>
+                    <p className="text-lg font-medium">No appointments found</p>
+                    <p className="text-sm">Try adjusting your filters</p>
+                </div>
+            )}
+
+            {/* Desktop table */}
+            {!loading && appointments.length > 0 && (
+                <>
+                    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+                        {/* Desktop */}
+                        <div className="hidden lg:block overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-gray-200 text-left text-gray-500 uppercase text-xs tracking-wider">
+                                        <th className="pb-3 pr-4 font-medium">Date & Time</th>
+                                        <th className="pb-3 pr-4 font-medium">Doctor</th>
+                                        <th className="pb-3 pr-4 font-medium">Patient</th>
+                                        <th className="pb-3 pr-4 font-medium">Specialty</th>
+                                        <th className="pb-3 pr-4 font-medium">Status</th>
+                                        <th className="pb-3 font-medium">Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {appointments.map((appt) => (
+                                        <tr key={appt._id} className="hover:bg-gray-50/50 transition-colors">
+                                            <td className="py-3 pr-4">
+                                                <p className="font-medium text-gray-800">
+                                                    {dayjs(appt.date).format('MMM D, YYYY')}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {appt.startTime} – {appt.endTime}
+                                                </p>
+                                            </td>
+                                            <td className="py-3 pr-4 text-gray-700">
+                                                {getDoctorName(appt)}
+                                            </td>
+                                            <td className="py-3 pr-4 text-gray-700">
+                                                {getPatientName(appt)}
+                                            </td>
+                                            <td className="py-3 pr-4 text-gray-500">
+                                                {getSpecialty(appt) || '—'}
+                                            </td>
+                                            <td className="py-3 pr-4">
+                                                <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${statusStyles[appt.status] || 'bg-gray-100 text-gray-700'}`}>
+                                                    {appt.status}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 text-gray-500 max-w-[200px] truncate">
+                                                {appt.reason || '—'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile cards */}
+                        <div className="lg:hidden space-y-3">
+                            {appointments.map((appt) => (
+                                <div key={appt._id} className="border border-gray-200 rounded-xl p-4 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <p className="font-medium text-gray-800">
+                                            {dayjs(appt.date).format('MMM D, YYYY')}
+                                        </p>
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${statusStyles[appt.status] || 'bg-gray-100 text-gray-700'}`}>
+                                            {appt.status}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-500">
+                                        {appt.startTime} – {appt.endTime}
+                                    </p>
+                                    <div className="flex flex-col gap-1 text-sm">
+                                        <p>
+                                            <span className="text-gray-500">Doctor:</span>{' '}
+                                            <span className="text-gray-800">{getDoctorName(appt)}</span>
+                                        </p>
+                                        <p>
+                                            <span className="text-gray-500">Patient:</span>{' '}
+                                            <span className="text-gray-800">{getPatientName(appt)}</span>
+                                        </p>
+                                        {getSpecialty(appt) && (
+                                            <p>
+                                                <span className="text-gray-500">Specialty:</span>{' '}
+                                                <span className="text-gray-800">{getSpecialty(appt)}</span>
+                                            </p>
+                                        )}
+                                    </div>
+                                    {appt.reason && (
+                                        <p className="text-xs text-gray-500 border-t border-gray-100 pt-2 line-clamp-2">
+                                            {appt.reason}
+                                        </p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Pagination */}
+                    {pagination.totalPages > 1 && (
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-gray-500">
+                                Page {pagination.page} of {pagination.totalPages}{' '}
+                                ({pagination.totalItems} total)
+                            </p>
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() => handlePageChange(pagination.page - 1)}
+                                    disabled={pagination.page <= 1}
+                                    className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                >
+                                    Previous
+                                </button>
+                                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                                    .filter((p) => {
+                                        const current = pagination.page;
+                                        return p === 1 || p === pagination.totalPages || Math.abs(p - current) <= 1;
+                                    })
+                                    .reduce((acc, p, i, arr) => {
+                                        if (i > 0 && p - arr[i - 1] > 1) acc.push('...');
+                                        acc.push(p);
+                                        return acc;
+                                    }, [])
+                                    .map((p, i) =>
+                                        p === '...' ? (
+                                            <span key={`e-${i}`} className="px-2 py-1.5 text-sm text-gray-400">...</span>
+                                        ) : (
+                                            <button
+                                                key={p}
+                                                onClick={() => handlePageChange(p)}
+                                                className={`px-3 py-1.5 text-sm rounded-lg border transition-colors cursor-pointer ${
+                                                    p === pagination.page
+                                                        ? 'border-purple-600 bg-purple-600 text-white'
+                                                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                {p}
+                                            </button>
+                                        )
+                                    )}
+                                <button
+                                    onClick={() => handlePageChange(pagination.page + 1)}
+                                    disabled={pagination.page >= pagination.totalPages}
+                                    className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    );
+};
+
 export default AppointmentsPage;
