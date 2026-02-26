@@ -98,7 +98,7 @@ const AppointmentsPage = () => {
                     <select
                         value={filters.status}
                         onChange={handleStatusChange}
-                        className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white cursor-pointer"
+                        className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
                     >
                         {statusOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -113,19 +113,19 @@ const AppointmentsPage = () => {
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Start date"
                         />
                         <input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="End date"
                         />
                         <button
                             type="submit"
-                            className="px-4 py-2.5 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors cursor-pointer"
+                            className="px-4 py-2.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer"
                         >
                             Apply
                         </button>
@@ -145,7 +145,7 @@ const AppointmentsPage = () => {
             {/* Loading */}
             {loading && (
                 <div className="flex items-center justify-center py-20">
-                    <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
                 </div>
             )}
 
@@ -284,7 +284,7 @@ const AppointmentsPage = () => {
                                                 onClick={() => handlePageChange(p)}
                                                 className={`px-3 py-1.5 text-sm rounded-lg border transition-colors cursor-pointer ${
                                                     p === pagination.page
-                                                        ? 'border-purple-600 bg-purple-600 text-white'
+                                                        ? 'border-blue-600 bg-blue-600 text-white'
                                                         : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                                                 }`}
                                             >

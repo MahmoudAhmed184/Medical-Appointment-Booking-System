@@ -74,7 +74,7 @@ const SpecialtiesPage = () => {
                 {!showForm && !editingSpecialty && (
                     <button
                         onClick={handleOpenCreate}
-                        className="px-4 py-2.5 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors cursor-pointer"
+                        className="px-4 py-2.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer"
                     >
                         + Add Specialty
                     </button>
@@ -104,7 +104,7 @@ const SpecialtiesPage = () => {
 
             {/* Edit form */}
             {editingSpecialty && (
-                <div className="bg-white rounded-xl border border-purple-200 p-5">
+                <div className="bg-white rounded-xl border border-blue-200 p-5">
                     <h2 className="text-lg font-semibold text-gray-800 mb-4">
                         Edit Specialty
                     </h2>
@@ -120,7 +120,7 @@ const SpecialtiesPage = () => {
             {/* Loading */}
             {loading && (
                 <div className="flex items-center justify-center py-20">
-                    <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
                 </div>
             )}
 
@@ -148,7 +148,7 @@ const SpecialtiesPage = () => {
                                 <div className="flex gap-1 ml-2 flex-shrink-0">
                                     <button
                                         onClick={() => handleEdit(specialty)}
-                                        className="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors cursor-pointer"
+                                        className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                                         title="Edit"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

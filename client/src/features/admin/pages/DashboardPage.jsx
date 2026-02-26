@@ -152,7 +152,7 @@ const DashboardPage = () => {
                     label="Appointments"
                     value={stats.totalAppointments}
                     loading={loading}
-                    color="bg-purple-50"
+                    color="bg-blue-50"
                     onClick={() => navigate('/admin/appointments')}
                 />
                 <StatCard
@@ -205,7 +205,7 @@ const DashboardPage = () => {
                         </h2>
                         <button
                             onClick={() => navigate('/admin/appointments')}
-                            className="text-sm text-purple-600 hover:text-purple-700 font-medium cursor-pointer"
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
                         >
                             View all →
                         </button>
@@ -213,7 +213,7 @@ const DashboardPage = () => {
 
                     {loading && (
                         <div className="flex items-center justify-center py-10">
-                            <div className="w-6 h-6 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                            <div className="w-6 h-6 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
                         </div>
                     )}
 

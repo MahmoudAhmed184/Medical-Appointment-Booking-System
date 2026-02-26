@@ -2,7 +2,7 @@ import { useState } from 'react';
 import dayjs from 'dayjs';
 
 const roleBadge = {
-    admin: 'bg-purple-100 text-purple-700',
+    admin: 'bg-blue-100 text-blue-700',
     doctor: 'bg-blue-100 text-blue-700',
     patient: 'bg-green-100 text-green-700',
 };
@@ -27,7 +27,7 @@ const UsersTable = ({
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20">
-                <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
             </div>
         );
     }
@@ -272,7 +272,7 @@ const UsersTable = ({
                                         onClick={() => onPageChange(p)}
                                         className={`px-3 py-1.5 text-sm rounded-lg border transition-colors cursor-pointer ${
                                             p === pagination.page
-                                                ? 'border-purple-600 bg-purple-600 text-white'
+                                                ? 'border-blue-600 bg-blue-600 text-white'
                                                 : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                                         }`}
                                     >

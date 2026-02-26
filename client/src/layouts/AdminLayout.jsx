@@ -44,12 +44,12 @@ const AdminLayout = () => {
     const sidebar = (
         <div className="flex flex-col h-full">
             {/* Brand */}
-            <div className="px-5 py-5 bg-gradient-to-br from-purple-700 to-indigo-800 text-white">
+            <div className="px-5 py-5 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
                 <div className="flex items-center gap-3">
                     <span className="text-3xl">🏥</span>
                     <div>
                         <h1 className="text-lg font-bold leading-tight">MediBook</h1>
-                        <p className="text-xs text-purple-200">Admin Panel</p>
+                        <p className="text-xs text-blue-200">Admin Panel</p>
                     </div>
                 </div>
             </div>
@@ -57,7 +57,7 @@ const AdminLayout = () => {
             {/* Admin info */}
             <div className="px-4 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
                         {(user.name || 'A').charAt(0).toUpperCase()}
                     </div>
                     <div className="overflow-hidden">
@@ -82,7 +82,7 @@ const AdminLayout = () => {
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer
                                 ${isActive
-                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-200'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
                                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                 }`}
                         >
@@ -126,7 +126,7 @@ const AdminLayout = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <span className="ml-3 text-lg font-bold text-purple-600">🏥 MediBook</span>
+                <span className="ml-3 text-lg font-bold text-blue-600">🏥 MediBook</span>
             </div>
 
             {/* Sidebar — mobile (slide-in) */}

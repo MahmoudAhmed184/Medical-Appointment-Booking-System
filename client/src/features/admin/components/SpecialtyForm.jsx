@@ -62,7 +62,7 @@ const SpecialtyForm = ({ initialData = null, onSubmit, loading = false, onCancel
                     type="text"
                     placeholder="e.g. Cardiology"
                     {...register('name')}
-                    className={`w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    className={`w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                         errors.name ? 'border-red-300 bg-red-50' : 'border-gray-200'
                     }`}
                 />
@@ -81,7 +81,7 @@ const SpecialtyForm = ({ initialData = null, onSubmit, loading = false, onCancel
                     rows={3}
                     placeholder="Brief description of this specialty..."
                     {...register('description')}
-                    className={`w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${
+                    className={`w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
                         errors.description ? 'border-red-300 bg-red-50' : 'border-gray-200'
                     }`}
                 />
@@ -95,7 +95,7 @@ const SpecialtyForm = ({ initialData = null, onSubmit, loading = false, onCancel
                 <button
                     type="submit"
                     disabled={loading}
-                    className="px-5 py-2.5 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors disabled:opacity-50 cursor-pointer"
+                    className="px-5 py-2.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                     {loading
                         ? isEdit
