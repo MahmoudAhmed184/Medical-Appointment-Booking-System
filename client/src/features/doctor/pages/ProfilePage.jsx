@@ -20,7 +20,7 @@ export default function ProfilePage() {
         setError(null);
         try {
             const { data } = await getDoctorProfileApi();
-            setProfile(data.doctor);
+            setProfile(data.data);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load profile');
         } finally {
@@ -54,7 +54,7 @@ export default function ProfilePage() {
         setSaving(true);
         try {
             const { data } = await updateDoctorProfileApi(formData);
-            setProfile(data.doctor);
+            setProfile(data.data);
             setEditing(false);
             try {
                 const user = JSON.parse(localStorage.getItem('user')) || {};
