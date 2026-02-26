@@ -13,8 +13,8 @@ const getInitialMode = () => {
         const stored = localStorage.getItem('darkMode');
         if (stored !== null) return stored === 'true';
     } catch { /* ignore */ }
-    // Default to dark mode
-    return true;
+    // Default to light mode
+    return false;
 };
 
 export const ThemeProvider = ({ children }) => {

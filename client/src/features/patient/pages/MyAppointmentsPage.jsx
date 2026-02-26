@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { FiX } from 'react-icons/fi';
 import {
   cancelAppointment,
   fetchMyAppointments,
@@ -319,7 +320,7 @@ export default function MyAppointmentsPage() {
                 onClick={closeRescheduleModal}
                 className="text-slate-500 hover:text-slate-800 dark:hover:text-white"
               >
-                ✕
+                <FiX className="text-xl" />
               </button>
             </div>
 
@@ -396,11 +397,10 @@ export default function MyAppointmentsPage() {
                 !rescheduleEndTime
               }
               onClick={handleRescheduleSubmit}
-              className={`w-full py-2 rounded-lg font-semibold transition ${
-                !isRescheduling && rescheduleDate && rescheduleStartTime && rescheduleEndTime
-                  ? 'bg-[#137fec] text-white hover:bg-[#137fec]/90'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-              }`}
+              className={`w-full py-2 rounded-lg font-semibold transition ${!isRescheduling && rescheduleDate && rescheduleStartTime && rescheduleEndTime
+                ? 'bg-[#137fec] text-white hover:bg-[#137fec]/90'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                }`}
             >
               {isRescheduling ? 'Saving...' : 'Save Changes'}
             </button>
@@ -438,9 +438,8 @@ export default function MyAppointmentsPage() {
                 type="button"
                 onClick={handleCancelConfirm}
                 disabled={isCancelling}
-                className={`flex-1 py-2 rounded-lg text-white ${
-                  isCancelling ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-                }`}
+                className={`flex-1 py-2 rounded-lg text-white ${isCancelling ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                  }`}
               >
                 {isCancelling ? 'Cancelling...' : 'Confirm Cancel'}
               </button>

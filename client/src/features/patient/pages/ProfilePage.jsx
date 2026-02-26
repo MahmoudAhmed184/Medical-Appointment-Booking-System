@@ -158,7 +158,7 @@ export default function PatientProfile() {
         {loading && <p className="text-sm text-slate-500">Loading profile...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
         {saving && <p className="text-sm text-blue-600">Saving...</p>}
-        
+
         {/* Profile Card */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-6 flex flex-col items-center gap-6">
           <div className="relative">
@@ -172,7 +172,7 @@ export default function PatientProfile() {
 
             {editableFields.map(({ key, label }) => (
               <div key={key}>
-                <label className="text-sm text-slate-500 capitalize">{label}</label>
+                <label className="text-sm text-slate-500 dark:text-slate-400 capitalize">{label}</label>
                 {editingField === key ? (
                   <div className="mt-1">
                     <div className="flex gap-2">
@@ -198,7 +198,7 @@ export default function PatientProfile() {
           </div>
         </div>
 
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }

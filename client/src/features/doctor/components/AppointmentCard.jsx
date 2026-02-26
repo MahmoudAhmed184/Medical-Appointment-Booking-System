@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FiCalendar, FiClock, FiCheck, FiX, FiEdit } from 'react-icons/fi';
 
 const STATUS_STYLES = {
     pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
@@ -33,6 +34,20 @@ const AppointmentCard = ({ appointment, onApprove, onReject, onComplete, onSaveN
         }
     };
 
+    const isPastStartTime = () => {
+        if (!appointment.date || !appointment.startTime) return false;
+        try {
+            const apptDate = new Date(appointment.date);
+            const [hours, minutes] = appointment.startTime.split(':').map(Number);
+            apptDate.setHours(hours, minutes, 0, 0);
+            return new Date() >= apptDate;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    const canComplete = isPastStartTime();
+
     return (
         <>
             <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 border-l-4 ${borderColor} p-5 mb-3 hover:shadow-md dark:hover:shadow-gray-900/50 hover:-translate-y-0.5 transition-all duration-200`}>
@@ -54,17 +69,16 @@ const AppointmentCard = ({ appointment, onApprove, onReject, onComplete, onSaveN
 
                 {/* Date & Time */}
                 <div className="flex gap-5 mb-3 flex-wrap text-sm text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center gap-1">
-                        📅 {appointment.date
+                    <span className="flex items-center gap-2">
+                        <FiCalendar /> {appointment.date
                             ? new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
                             : '—'}
                     </span>
-                    <span className="flex items-center gap-1">
-                        🕐 {appointment.startTime || '—'} — {appointment.endTime || '—'}
+                    <span className="flex items-center gap-2">
+                        <FiClock /> {appointment.startTime || '—'} — {appointment.endTime || '—'}
                     </span>
                 </div>
 
-                {/* Reason (collapsible) */}
                 {appointment.reason && (
                     <div className="mb-3">
                         <button
@@ -95,22 +109,24 @@ const AppointmentCard = ({ appointment, onApprove, onReject, onComplete, onSaveN
                                 onClick={() => onApprove?.(appointment._id)}
                                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
                             >
-                                ✅ Approve
+                                <FiCheck className="text-lg" /> Approve
                             </button>
                             <button
                                 onClick={() => onReject?.(appointment._id)}
                                 className="inline-flex items-center gap-1.5 px-4 py-2 border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 text-sm font-semibold rounded-xl transition-colors cursor-pointer"
                             >
-                                ❌ Reject
+                                <FiX className="text-lg" /> Reject
                             </button>
                         </>
                     )}
                     {appointment.status === 'confirmed' && (
                         <button
                             onClick={() => onComplete?.(appointment._id)}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+                            disabled={!canComplete}
+                            title={!canComplete ? "Appointment start time has not passed yet" : ""}
+                            className={`inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-xl transition-colors ${canComplete ? 'bg-purple-600 hover:bg-purple-700 cursor-pointer' : 'bg-purple-400 cursor-not-allowed opacity-60'}`}
                         >
-                            🏆 Mark Complete
+                            Mark Complete
                         </button>
                     )}
                     {['pending', 'confirmed', 'completed'].includes(appointment.status) && (
@@ -119,7 +135,7 @@ const AppointmentCard = ({ appointment, onApprove, onReject, onComplete, onSaveN
                             className="p-2 rounded-xl text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors cursor-pointer"
                             title="Add / Edit Notes"
                         >
-                            📝
+                            <FiEdit className="text-lg" />
                         </button>
                     )}
                 </div>
@@ -152,7 +168,7 @@ const AppointmentCard = ({ appointment, onApprove, onReject, onComplete, onSaveN
                                 </button>
                                 <button
                                     onClick={handleSaveNotes}
-                                    className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors cursor-pointer"
+                                    className="px-5 py-2.5 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors cursor-pointer"
                                 >
                                     Save Notes
                                 </button>

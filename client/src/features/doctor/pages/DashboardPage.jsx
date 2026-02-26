@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
+import { FiClipboard, FiClock, FiCheckCircle, FiAward, FiCalendar } from 'react-icons/fi';
 import useAppointments from '../hooks/useAppointments';
 
 const STAT_CARDS = [
-    { key: 'total', label: 'Total Appointments', icon: '📋', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/40', border: 'border-blue-100 dark:border-blue-800' },
-    { key: 'pending', label: 'Pending', icon: '⏳', color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/40', border: 'border-orange-100 dark:border-orange-800' },
-    { key: 'confirmed', label: 'Confirmed', icon: '✅', color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/40', border: 'border-green-100 dark:border-green-800' },
-    { key: 'completed', label: 'Completed', icon: '🏆', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/40', border: 'border-purple-100 dark:border-purple-800' },
+    { key: 'total', label: 'Total Appointments', icon: <FiClipboard />, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/40', border: 'border-blue-100 dark:border-blue-800' },
+    { key: 'pending', label: 'Pending', icon: <FiClock />, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/40', border: 'border-orange-100 dark:border-orange-800' },
+    { key: 'confirmed', label: 'Confirmed', icon: <FiCheckCircle />, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/40', border: 'border-green-100 dark:border-green-800' },
+    { key: 'completed', label: 'Completed', icon: <FiAward />, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/40', border: 'border-purple-100 dark:border-purple-800' },
 ];
 
 const STATUS_STYLES = {
@@ -93,7 +94,7 @@ export default function DashboardPage() {
                         <h3 className="text-lg font-semibold">Manage Availability</h3>
                         <p className="text-sm text-blue-100">Set your weekly schedule</p>
                     </div>
-                    <span className="text-5xl opacity-50">📅</span>
+                    <span className="text-5xl opacity-50"><FiCalendar /></span>
                 </button>
                 <button
                     onClick={() => navigate('/doctor/appointments')}
@@ -103,7 +104,7 @@ export default function DashboardPage() {
                         <h3 className="text-lg font-semibold">View Appointments</h3>
                         <p className="text-sm text-purple-100">Manage patient appointments</p>
                     </div>
-                    <span className="text-5xl opacity-50">📋</span>
+                    <span className="text-5xl opacity-50"><FiClipboard /></span>
                 </button>
             </div>
 
@@ -143,7 +144,7 @@ export default function DashboardPage() {
                                             {appt.patientId?.userId?.name || appt.patient?.user?.name || 'Patient'}
                                         </p>
                                         <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                                            🕐 {appt.date ? new Date(appt.date).toLocaleDateString() : '—'} • {appt.startTime || '—'}
+                                            <FiClock /> {appt.date ? new Date(appt.date).toLocaleDateString() : '—'} • {appt.startTime || '—'}
                                         </p>
                                     </div>
                                 </div>

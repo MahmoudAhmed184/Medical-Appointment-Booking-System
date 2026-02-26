@@ -6,7 +6,7 @@ export const getAvailabilityApi = () => axiosInstance.get('/doctors/availability
 export const setAvailabilityApi = (data) => axiosInstance.post('/doctors/availability', data);
 export const updateAvailabilitySlotApi = (slotId, data) => axiosInstance.put(`/doctors/availability/${slotId}`, data);
 export const deleteAvailabilitySlotApi = (slotId) => axiosInstance.delete(`/doctors/availability/${slotId}`);
-export const getDoctorAppointmentsApi = () => axiosInstance.get('/appointments/doctor');
+export const getDoctorAppointmentsApi = () => axiosInstance.get('/appointments');
 export const approveAppointmentApi = (id) => axiosInstance.patch(`/appointments/${id}/approve`);
 export const rejectAppointmentApi = (id) => axiosInstance.patch(`/appointments/${id}/reject`);
 export const completeAppointmentApi = (id) => axiosInstance.patch(`/appointments/${id}/complete`);

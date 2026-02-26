@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import BookConfirmModal from "../components/BookConfirmModal";
 import DoctorCard from "../components/DoctorCard";
@@ -124,11 +125,11 @@ export default function DashboardPage() {
   const todayDateString = useMemo(() => toLocalDateInputValue(new Date()), []);
   const isPastSelectedDate = Boolean(selectedDate && selectedDate < todayDateString);
 
- const navigate =useNavigate();
+  const navigate = useNavigate();
 
- const handleDoctorClick=(doctor)=>{
-  navigate(`/patient/doctor/${doctor.id}`,{state:{doctor}});
- }
+  const handleDoctorClick = (doctor) => {
+    navigate(`/patient/doctor/${doctor.id}`, { state: { doctor } });
+  }
 
   useEffect(() => {
     dispatch(fetchDoctors());
@@ -242,9 +243,8 @@ export default function DashboardPage() {
 
         {/* Doctor List */}
         <div
-          className={`space-y-6 transition-all duration-300 ${
-            selectedDoctor ? "lg:col-span-8" : "lg:col-span-12"
-          }`}
+          className={`space-y-6 transition-all duration-300 ${selectedDoctor ? "lg:col-span-8" : "lg:col-span-12"
+            }`}
         >
           {/* Search / Filter */}
           <div className="flex flex-col md:flex-row gap-4 p-4 rounded-xl shadow bg-white dark:bg-slate-800 mb-4">
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                   }}
                   className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
                 >
-                  ✕
+                  <FiX className="text-xl" />
                 </button>
               </div>
 
@@ -413,14 +413,13 @@ export default function DashboardPage() {
                   !selectedEndTime ||
                   reason.trim().length < 10
                 }
-                className={`w-full py-2 rounded-lg font-semibold transition ${
-                  selectedDate &&
+                className={`w-full py-2 rounded-lg font-semibold transition ${selectedDate &&
                   selectedStartTime &&
                   selectedEndTime &&
                   reason.trim().length >= 10
-                    ? "bg-[#137fec] text-white hover:bg-[#137fec]/90"
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                }`}
+                  ? "bg-[#137fec] text-white hover:bg-[#137fec]/90"
+                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  }`}
                 onClick={handleConfirmAppointment}
               >
                 {isSubmitting ? "Booking..." : "Confirm Appointment"}
@@ -431,23 +430,23 @@ export default function DashboardPage() {
         )}
 
       </main>
-            {showConfirmModal && selectedDoctor && (
-              <BookConfirmModal
-                doctor={selectedDoctor}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-                selectedStartTime={selectedStartTime}
-                selectedEndTime={selectedEndTime}
-                reason={reason}
-                onDone={() => {
-                  dispatch(setShowConfirmModal(false));
-                  dispatch(resetBookingState());
-                  dispatch(clearSelectedDoctor());
-                }}
-              />
-            )}
+      {showConfirmModal && selectedDoctor && (
+        <BookConfirmModal
+          doctor={selectedDoctor}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          selectedStartTime={selectedStartTime}
+          selectedEndTime={selectedEndTime}
+          reason={reason}
+          onDone={() => {
+            dispatch(setShowConfirmModal(false));
+            dispatch(resetBookingState());
+            dispatch(clearSelectedDoctor());
+          }}
+        />
+      )}
 
-      
+
 
     </div>
   );

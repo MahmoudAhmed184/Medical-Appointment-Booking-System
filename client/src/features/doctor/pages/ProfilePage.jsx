@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getDoctorProfileApi, updateDoctorProfileApi } from '../services/doctorApi';
+import { FiMail, FiPhone, FiMapPin, FiEdit2 } from 'react-icons/fi';
 
 export default function ProfilePage() {
     const [profile, setProfile] = useState(null);
@@ -120,13 +121,13 @@ export default function ProfilePage() {
 
                         <div className="text-left space-y-3">
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <span>📧</span> {profile?.userId?.email || '—'}
+                                <span><FiMail /></span> {profile?.userId?.email || '—'}
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <span>📱</span> {profile?.phone || '—'}
+                                <span><FiPhone /></span> {profile?.phone || '—'}
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <span>📍</span> {profile?.address || '—'}
+                                <span><FiMapPin /></span> {profile?.address || '—'}
                             </div>
                         </div>
                     </div>
@@ -144,7 +145,7 @@ export default function ProfilePage() {
                                     onClick={handleEdit}
                                     className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl text-sm font-medium transition-colors cursor-pointer"
                                 >
-                                    ✏️ Edit
+                                    <FiEdit2 /> Edit
                                 </button>
                             )}
                         </div>

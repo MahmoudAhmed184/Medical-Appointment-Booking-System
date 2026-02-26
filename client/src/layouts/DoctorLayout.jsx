@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../shared/context/ThemeContext';
+import { FiBarChart2, FiCalendar, FiClipboard, FiUser, FiActivity, FiLogOut } from 'react-icons/fi';
 
 const navItems = [
-    { text: 'Dashboard', icon: '📊', path: '/doctor' },
-    { text: 'Availability', icon: '📅', path: '/doctor/availability' },
-    { text: 'Appointments', icon: '📋', path: '/doctor/appointments' },
-    { text: 'Profile', icon: '👤', path: '/doctor/profile' },
+    { text: 'Dashboard', icon: <FiBarChart2 />, path: '/doctor' },
+    { text: 'Availability', icon: <FiCalendar />, path: '/doctor/availability' },
+    { text: 'Appointments', icon: <FiClipboard />, path: '/doctor/appointments' },
+    { text: 'Profile', icon: <FiUser />, path: '/doctor/profile' },
 ];
 
 const getUserFromStorage = () => {
@@ -50,7 +51,7 @@ const DoctorLayout = () => {
             {/* Brand */}
             <div className="px-5 py-5 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
                 <div className="flex items-center gap-3">
-                    <span className="text-3xl">🏥</span>
+                    <span className="text-3xl"><FiActivity /></span>
                     <div>
                         <h1 className="text-lg font-bold leading-tight">MediBook</h1>
                         <p className="text-xs text-blue-200">Doctor Portal</p>
@@ -101,9 +102,9 @@ const DoctorLayout = () => {
             <div className="px-3 py-3 border-t border-gray-100 dark:border-gray-700">
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-all duration-200 cursor-pointer"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-all duration-200 cursor-pointer"
                 >
-                    <span className="text-lg">🚪</span>
+                    <span className="text-lg"><FiLogOut /></span>
                     Logout
                 </button>
             </div>
@@ -131,7 +132,9 @@ const DoctorLayout = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
-                    <span className="ml-3 text-lg font-bold text-blue-600">🏥 MediBook</span>
+                    <span className="ml-3 text-lg font-bold text-blue-600 flex items-center gap-2">
+                        <FiActivity /> MediBook
+                    </span>
                 </div>
                 {/* Dark mode toggle — mobile */}
                 <button

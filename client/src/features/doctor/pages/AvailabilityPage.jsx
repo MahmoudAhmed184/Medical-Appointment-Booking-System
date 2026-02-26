@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useAvailability from '../hooks/useAvailability';
+import { FiClock, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 const DAYS = [
     { value: 0, label: 'Sunday' },
@@ -121,7 +122,7 @@ export default function AvailabilityPage() {
                 </div>
             ) : slotsByDay.length === 0 ? (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 text-center py-16 px-6">
-                    <span className="text-6xl block mb-4">🕐</span>
+                    <span className="text-6xl flex justify-center mb-4 text-gray-300 dark:text-gray-600"><FiClock /></span>
                     <h3 className="text-lg font-semibold text-gray-500 dark:text-gray-400 mb-2">No availability slots set</h3>
                     <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">Add your first time slot to start accepting appointments.</p>
                     <button
@@ -147,21 +148,21 @@ export default function AvailabilityPage() {
                                         key={slot._id}
                                         className="flex items-center gap-2 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 bg-white dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md dark:hover:shadow-gray-900/50 transition-all duration-200 group"
                                     >
-                                        <span className="text-blue-500">🕐</span>
+                                        <span className="text-blue-500 text-lg"><FiClock /></span>
                                         <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{slot.startTime} — {slot.endTime}</span>
                                         <button
                                             onClick={() => handleOpenEdit(slot)}
                                             className="ml-1 p-1 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                                             title="Edit"
                                         >
-                                            ✏️
+                                            <FiEdit2 className="text-lg" />
                                         </button>
                                         <button
                                             onClick={() => setDeleteConfirm(slot._id)}
                                             className="p-1 rounded-lg text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                                             title="Delete"
                                         >
-                                            🗑️
+                                            <FiTrash2 className="text-lg" />
                                         </button>
                                     </div>
                                 ))}
