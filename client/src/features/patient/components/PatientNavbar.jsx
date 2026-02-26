@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { FiLogOut, FiSun, FiMoon, FiActivity } from 'react-icons/fi';
 import { useTheme } from '../../../shared/context/ThemeContext';
 import { PATIENT_DEFAULT_AVATAR } from '../../../shared/utils/constants';
+import { logout } from '../../../store/slices/authSlice';
 
 const tabClass = (isActive) =>
   isActive
@@ -14,12 +16,11 @@ export default function PatientNavbar({
   patientImage = PATIENT_DEFAULT_AVATAR,
 }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { darkMode, toggleDarkMode } = useTheme();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
+    dispatch(logout());
     navigate('/login');
   };
 
