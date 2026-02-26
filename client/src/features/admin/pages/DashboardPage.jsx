@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { FiUsers, FiClock, FiUserCheck, FiClipboard, FiTag } from 'react-icons/fi';
 import { getStatusClasses } from '../../../shared/utils/statusBadge';
+import { getDoctorName, getPatientName } from '../../../shared/utils/appointment';
 import {
     getUsersApi,
     getSpecialtiesApi,
@@ -92,18 +93,6 @@ const DashboardPage = () => {
 
         fetchStats();
     }, []);
-
-    const getDoctorName = (appt) => {
-        if (appt.doctorId?.userId?.name) return appt.doctorId.userId.name;
-        if (appt.doctorId?.name) return appt.doctorId.name;
-        return 'N/A';
-    };
-
-    const getPatientName = (appt) => {
-        if (appt.patientId?.userId?.name) return appt.patientId.userId.name;
-        if (appt.patientId?.name) return appt.patientId.name;
-        return 'N/A';
-    };
 
     return (
         <div className="space-y-6">

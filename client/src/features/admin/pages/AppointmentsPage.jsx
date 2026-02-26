@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { FiClipboard } from 'react-icons/fi';
 import { getStatusClasses } from '../../../shared/utils/statusBadge';
 import useAppointments from '../hooks/useAppointments';
+import { getDoctorName, getPatientName } from '../../../shared/utils/appointment';
 
 const statusOptions = [
     { label: 'All Statuses', value: '' },
@@ -12,18 +13,6 @@ const statusOptions = [
     { label: 'Cancelled', value: 'cancelled' },
     { label: 'Rejected', value: 'rejected' },
 ];
-
-const getDoctorName = (appt) => {
-    if (appt.doctorId?.userId?.name) return appt.doctorId.userId.name;
-    if (appt.doctorId?.name) return appt.doctorId.name;
-    return 'N/A';
-};
-
-const getPatientName = (appt) => {
-    if (appt.patientId?.userId?.name) return appt.patientId.userId.name;
-    if (appt.patientId?.name) return appt.patientId.name;
-    return 'N/A';
-};
 
 const getSpecialty = (appt) => {
     if (appt.doctorId?.specialtyId?.name) return appt.doctorId.specialtyId.name;
