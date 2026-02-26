@@ -46,7 +46,6 @@ const SpecialtyForm = ({ initialData = null, onSubmit, loading = false, onCancel
             await onSubmit(data);
             if (!isEdit) reset({ name: '', description: '' });
         } catch {
-            // error handled by parent
         }
     };
 

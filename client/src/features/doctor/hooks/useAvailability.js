@@ -11,13 +11,11 @@ const useAvailability = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch all availability slots for the logged-in doctor
     const fetchSlots = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
             const { data } = await getAvailabilityApi();
-            // Backend returns { success: true, data: [...] }
             setSlots(data.data || []);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load availability');
@@ -30,9 +28,6 @@ const useAvailability = () => {
         fetchSlots();
     }, [fetchSlots]);
 
-    // Add a new slot
-    // Backend expects { doctorId, dayOfWeek, startTime, endTime }
-    // Returns { success, data: newSlot }
     const addSlot = async (slotData) => {
         try {
             const { data } = await setAvailabilityApi(slotData);
@@ -47,9 +42,6 @@ const useAvailability = () => {
         }
     };
 
-    // Update an existing slot (startTime, endTime)
-    // Backend expects { startTime, endTime }
-    // Returns { success, data: updatedSlot }
     const updateSlot = async (slotId, updates) => {
         try {
             const { data } = await updateAvailabilitySlotApi(slotId, updates);
@@ -66,8 +58,6 @@ const useAvailability = () => {
         }
     };
 
-    // Delete a slot
-    // Returns { success, message }
     const removeSlot = async (slotId) => {
         try {
             const { data } = await deleteAvailabilitySlotApi(slotId);

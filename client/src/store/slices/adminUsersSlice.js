@@ -98,7 +98,6 @@ const adminUsersSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // fetchUsers
             .addCase(fetchUsers.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -112,7 +111,6 @@ const adminUsersSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            // approveUser
             .addCase(approveUser.pending, (state) => {
                 state.actionLoading = true;
             })
@@ -127,7 +125,6 @@ const adminUsersSlice = createSlice({
                 state.actionLoading = false;
                 state.error = action.payload;
             })
-            // blockUser
             .addCase(blockUser.pending, (state) => {
                 state.actionLoading = true;
             })
@@ -142,7 +139,6 @@ const adminUsersSlice = createSlice({
                 state.actionLoading = false;
                 state.error = action.payload;
             })
-            // deleteUser
             .addCase(deleteUser.pending, (state) => {
                 state.actionLoading = true;
             })

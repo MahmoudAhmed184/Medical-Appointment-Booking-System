@@ -205,7 +205,6 @@ export default function DashboardPage() {
             </select>
             <button
               onClick={() => {
-                // Filtering is applied live by controlled fields.
               }}
               className="px-5 py-2 rounded-lg text-white bg-[#137fec]"
             >

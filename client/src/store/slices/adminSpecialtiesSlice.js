@@ -79,7 +79,6 @@ const adminSpecialtiesSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // fetchSpecialties
             .addCase(fetchSpecialties.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -92,7 +91,6 @@ const adminSpecialtiesSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            // createSpecialty
             .addCase(createSpecialty.pending, (state) => {
                 state.formLoading = true;
                 state.formError = null;
@@ -105,7 +103,6 @@ const adminSpecialtiesSlice = createSlice({
                 state.formLoading = false;
                 state.formError = action.payload;
             })
-            // updateSpecialty
             .addCase(updateSpecialty.pending, (state) => {
                 state.formLoading = true;
                 state.formError = null;
@@ -123,7 +120,6 @@ const adminSpecialtiesSlice = createSlice({
                 state.formLoading = false;
                 state.formError = action.payload;
             })
-            // deleteSpecialty
             .addCase(deleteSpecialty.pending, (state) => {
                 state.formLoading = true;
             })

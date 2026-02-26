@@ -9,7 +9,7 @@ import { useState, useCallback } from 'react';
  *   showToast('Saved successfully');
  *   showToast('Something went wrong', 'error');
  *
- *   // Render: <Toast toast={toast} />
+ *
  */
 export function useToast(duration = 4000) {
     const [toast, setToast] = useState(null);

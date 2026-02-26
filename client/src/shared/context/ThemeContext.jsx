@@ -13,7 +13,6 @@ const getInitialMode = () => {
         const stored = localStorage.getItem('darkMode');
         if (stored !== null) return stored === 'true';
     } catch { /* ignore */ }
-    // Default to light mode
     return false;
 };
 

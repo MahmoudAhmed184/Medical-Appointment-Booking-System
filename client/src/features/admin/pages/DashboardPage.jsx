@@ -85,7 +85,6 @@ const DashboardPage = () => {
                     );
                 }
             } catch {
-                // stats are best-effort
             } finally {
                 setLoading(false);
             }

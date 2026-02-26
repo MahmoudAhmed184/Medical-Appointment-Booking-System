@@ -12,9 +12,6 @@ const useAppointments = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch doctor appointments
-    // Backend GET /appointments/doctor auto-derives doctorId from auth token
-    // Returns { success, data: [...] }
     const fetchAppointments = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -32,8 +29,6 @@ const useAppointments = () => {
         fetchAppointments();
     }, [fetchAppointments]);
 
-    // Approve appointment — PATCH /appointments/:id/approve
-    // Returns { success, data: updatedAppointment }
     const approve = async (id) => {
         try {
             const { data } = await approveAppointmentApi(id);
@@ -49,8 +44,6 @@ const useAppointments = () => {
         }
     };
 
-    // Reject appointment — PATCH /appointments/:id/reject
-    // Returns { success, data: updatedAppointment }
     const reject = async (id) => {
         try {
             const { data } = await rejectAppointmentApi(id);
@@ -66,8 +59,6 @@ const useAppointments = () => {
         }
     };
 
-    // Complete appointment — PATCH /appointments/:id/complete
-    // Returns { success, data: updatedAppointment }
     const complete = async (id) => {
         try {
             const { data } = await completeAppointmentApi(id);
@@ -83,9 +74,6 @@ const useAppointments = () => {
         }
     };
 
-    // Add/edit notes — PATCH /appointments/:id/notes
-    // Sends { notes } in body
-    // Returns { success, data: updatedAppointment }
     const saveNotes = async (id, notes) => {
         try {
             const { data } = await addNotesApi(id, notes);

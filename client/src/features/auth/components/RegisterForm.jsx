@@ -1,4 +1,3 @@
-// TODO: Implement registration form with role selection
 const RegisterForm = () => {
     return (
         <div>
