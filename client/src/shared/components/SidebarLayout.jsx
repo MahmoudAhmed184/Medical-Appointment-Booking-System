@@ -5,17 +5,6 @@ import { logout } from '../../store/slices/authSlice';
 import { useTheme } from '../context/ThemeContext';
 import { FiActivity, FiLogOut, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
 import { getUserFromStorage } from '../utils/storage';
-
-/**
- * Shared sidebar layout used by Admin and Doctor roles.
- *
- * @param {Object}   props
- * @param {Array}    props.navItems      - Array of { text, icon, path }
- * @param {string}   props.portalLabel   - Subtitle shown under "MediBook" (e.g. "Admin Panel")
- * @param {string}   props.defaultInitial - Fallback initial for the avatar (e.g. "A")
- * @param {string}   props.defaultName   - Fallback display name (e.g. "Admin")
- * @param {function} [props.formatName]  - Optional formatter for the user name display
- */
 const SidebarLayout = ({
     navItems,
     portalLabel,

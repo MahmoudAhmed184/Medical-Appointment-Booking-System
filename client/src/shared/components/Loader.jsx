@@ -1,11 +1,3 @@
-/**
- * Reusable loading spinner with optional message.
- *
- * @param {Object}  props
- * @param {string}  [props.message='Loading...'] - Text shown below the spinner
- * @param {string}  [props.size='w-10 h-10']     - Tailwind size classes for the spinner
- * @param {boolean} [props.fullPage=true]         - Whether to center in the full viewport
- */
 const Loader = ({ message = 'Loading...', size = 'w-10 h-10', fullPage = true }) => {
     const wrapper = fullPage
         ? 'flex flex-col items-center justify-center min-h-[60vh]'

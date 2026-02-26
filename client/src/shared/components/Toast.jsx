@@ -1,13 +1,3 @@
-/**
- * Shared Toast component — renders a fixed-bottom-center notification banner.
- *
- * Props:
- *   toast: { message: string, type: 'success' | 'error' } | null
- *
- * Usage:
- *   const { toast, showToast } = useToast();
- *   return <Toast toast={toast} />;
- */
 export default function Toast({ toast }) {
     if (!toast) return null;
 

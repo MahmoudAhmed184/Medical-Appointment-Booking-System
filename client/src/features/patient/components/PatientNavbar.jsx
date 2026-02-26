@@ -58,7 +58,6 @@ export default function PatientNavbar({
             className="w-10 h-10 rounded-full object-cover"
           />
 
-
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-[#253241] text-gray-600 dark:text-yellow-400 transition-colors cursor-pointer"

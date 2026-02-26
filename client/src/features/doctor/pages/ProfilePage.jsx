@@ -60,7 +60,7 @@ export default function ProfilePage() {
                 if (formData.email) user.email = formData.email;
                 localStorage.setItem('user', JSON.stringify(user));
                 window.dispatchEvent(new Event('user-updated'));
-            } catch { /* ignore */ }
+            } catch {  }
             showToast('Profile updated successfully');
         } catch (err) {
             showToast(err.response?.data?.message || err.response?.data?.error?.message || 'Failed to update profile', 'error');

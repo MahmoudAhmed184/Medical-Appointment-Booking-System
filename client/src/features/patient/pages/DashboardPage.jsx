@@ -32,7 +32,6 @@ import {
   getEndOptions,
 } from "../../../shared/utils/timeSlots";
 
-
 export default function DashboardPage() {
   const dispatch = useDispatch();
   const { doctors, search, filterSpecialty, selectedDoctorId, loading, error } = useSelector(
@@ -374,8 +373,6 @@ export default function DashboardPage() {
           }}
         />
       )}
-
-
 
     </div>
   );
