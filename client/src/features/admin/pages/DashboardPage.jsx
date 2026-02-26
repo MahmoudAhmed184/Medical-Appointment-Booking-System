@@ -1,3 +1,258 @@
-import { Typography } from '@mui/material';
-const DashboardPage = () => <Typography variant="h4">Admin Dashboard</Typography>;
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
+import {
+    getUsersApi,
+    getSpecialtiesApi,
+    getAllAppointmentsApi,
+} from '../services/adminApi';
+
+const StatCard = ({ icon, label, value, loading, color, onClick }) => (
+    <button
+        onClick={onClick}
+        className={`bg-white rounded-xl border border-gray-200 p-5 text-left hover:shadow-md transition-shadow w-full cursor-pointer`}
+    >
+        <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${color}`}>
+                {icon}
+            </div>
+            <div>
+                {loading ? (
+                    <div className="w-10 h-6 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                    <p className="text-2xl font-bold text-gray-800">{value}</p>
+                )}
+                <p className="text-sm text-gray-500">{label}</p>
+            </div>
+        </div>
+    </button>
+);
+
+const DashboardPage = () => {
+    const navigate = useNavigate();
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        pendingApprovals: 0,
+        totalAppointments: 0,
+        totalDoctors: 0,
+        totalSpecialties: 0,
+    });
+    const [recentAppointments, setRecentAppointments] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            setLoading(true);
+            try {
+                const [usersRes, pendingRes, doctorsRes, appointmentsRes, specialtiesRes] =
+                    await Promise.allSettled([
+                        getUsersApi({ limit: 1 }),
+                        getUsersApi({ limit: 1, isApproved: false, role: 'doctor' }),
+                        getUsersApi({ limit: 1, role: 'doctor' }),
+                        getAllAppointmentsApi({ limit: 5 }),
+                        getSpecialtiesApi(),
+                    ]);
+
+                setStats({
+                    totalUsers:
+                        usersRes.status === 'fulfilled'
+                            ? usersRes.value.data?.pagination?.totalItems || 0
+                            : 0,
+                    pendingApprovals:
+                        pendingRes.status === 'fulfilled'
+                            ? pendingRes.value.data?.pagination?.totalItems || 0
+                            : 0,
+                    totalDoctors:
+                        doctorsRes.status === 'fulfilled'
+                            ? doctorsRes.value.data?.pagination?.totalItems || 0
+                            : 0,
+                    totalAppointments:
+                        appointmentsRes.status === 'fulfilled'
+                            ? appointmentsRes.value.data?.pagination?.totalItems || 0
+                            : 0,
+                    totalSpecialties:
+                        specialtiesRes.status === 'fulfilled'
+                            ? specialtiesRes.value.data?.data?.length || 0
+                            : 0,
+                });
+
+                if (appointmentsRes.status === 'fulfilled') {
+                    setRecentAppointments(
+                        appointmentsRes.value.data?.data?.slice(0, 5) || []
+                    );
+                }
+            } catch {
+                // stats are best-effort
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStats();
+    }, []);
+
+    const getDoctorName = (appt) => {
+        if (appt.doctorId?.userId?.name) return appt.doctorId.userId.name;
+        if (appt.doctorId?.name) return appt.doctorId.name;
+        return 'N/A';
+    };
+
+    const getPatientName = (appt) => {
+        if (appt.patientId?.userId?.name) return appt.patientId.userId.name;
+        if (appt.patientId?.name) return appt.patientId.name;
+        return 'N/A';
+    };
+
+    const statusStyles = {
+        pending: 'bg-yellow-100 text-yellow-700',
+        confirmed: 'bg-blue-100 text-blue-700',
+        completed: 'bg-green-100 text-green-700',
+        cancelled: 'bg-red-100 text-red-700',
+        rejected: 'bg-gray-100 text-gray-700',
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div>
+                <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+                <p className="text-sm text-gray-500 mt-1">
+                    Overview of your platform at a glance
+                </p>
+            </div>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <StatCard
+                    icon="👥"
+                    label="Total Users"
+                    value={stats.totalUsers}
+                    loading={loading}
+                    color="bg-blue-50"
+                    onClick={() => navigate('/admin/users')}
+                />
+                <StatCard
+                    icon="⏳"
+                    label="Pending Approvals"
+                    value={stats.pendingApprovals}
+                    loading={loading}
+                    color="bg-yellow-50"
+                    onClick={() => navigate('/admin/users')}
+                />
+                <StatCard
+                    icon="🩺"
+                    label="Doctors"
+                    value={stats.totalDoctors}
+                    loading={loading}
+                    color="bg-green-50"
+                    onClick={() => navigate('/admin/users')}
+                />
+                <StatCard
+                    icon="📋"
+                    label="Appointments"
+                    value={stats.totalAppointments}
+                    loading={loading}
+                    color="bg-purple-50"
+                    onClick={() => navigate('/admin/appointments')}
+                />
+                <StatCard
+                    icon="🏷️"
+                    label="Specialties"
+                    value={stats.totalSpecialties}
+                    loading={loading}
+                    color="bg-indigo-50"
+                    onClick={() => navigate('/admin/specialties')}
+                />
+            </div>
+
+            {/* Quick actions + Recent appointments */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Quick actions */}
+                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                        Quick Actions
+                    </h2>
+                    <div className="space-y-2">
+                        <button
+                            onClick={() => navigate('/admin/users')}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors text-left cursor-pointer"
+                        >
+                            <span className="text-lg">👥</span>
+                            Manage Users
+                        </button>
+                        <button
+                            onClick={() => navigate('/admin/specialties')}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors text-left cursor-pointer"
+                        >
+                            <span className="text-lg">🏷️</span>
+                            Manage Specialties
+                        </button>
+                        <button
+                            onClick={() => navigate('/admin/appointments')}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors text-left cursor-pointer"
+                        >
+                            <span className="text-lg">📋</span>
+                            View All Appointments
+                        </button>
+                    </div>
+                </div>
+
+                {/* Recent appointments */}
+                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-semibold text-gray-800">
+                            Recent Appointments
+                        </h2>
+                        <button
+                            onClick={() => navigate('/admin/appointments')}
+                            className="text-sm text-purple-600 hover:text-purple-700 font-medium cursor-pointer"
+                        >
+                            View all →
+                        </button>
+                    </div>
+
+                    {loading && (
+                        <div className="flex items-center justify-center py-10">
+                            <div className="w-6 h-6 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                        </div>
+                    )}
+
+                    {!loading && !recentAppointments.length && (
+                        <p className="text-sm text-gray-500 text-center py-8">
+                            No appointments yet
+                        </p>
+                    )}
+
+                    {!loading && recentAppointments.length > 0 && (
+                        <div className="space-y-3">
+                            {recentAppointments.map((appt) => (
+                                <div
+                                    key={appt._id}
+                                    className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-800 truncate">
+                                            {getPatientName(appt)} → {getDoctorName(appt)}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            {dayjs(appt.date).format('MMM D, YYYY')} · {appt.startTime}
+                                        </p>
+                                    </div>
+                                    <span
+                                        className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ml-3 flex-shrink-0 ${
+                                            statusStyles[appt.status] || 'bg-gray-100 text-gray-700'
+                                        }`}
+                                    >
+                                        {appt.status}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default DashboardPage;
