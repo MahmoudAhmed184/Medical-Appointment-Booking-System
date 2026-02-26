@@ -1,7 +1,6 @@
 import axiosInstance from '../../../shared/api/axiosInstance';
 
 export const getUsersApi = (params) => axiosInstance.get('/users', { params });
-export const getUserByIdApi = (id) => axiosInstance.get(`/users/${id}`);
 export const approveUserApi = (id) => axiosInstance.patch(`/users/${id}/approve`);
 export const blockUserApi = (id) => axiosInstance.patch(`/users/${id}/block`);
 export const deleteUserApi = (id) => axiosInstance.delete(`/users/${id}`);
