@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { FiLogOut, FiSun, FiMoon } from 'react-icons/fi';
+import { FiLogOut, FiSun, FiMoon, FiActivity } from 'react-icons/fi';
 import { useTheme } from '../../../shared/context/ThemeContext';
 
 const PATIENT_DEFAULT_AVATAR = 'https://avatar.iran.liara.run/public/girl?username=patient';
@@ -29,7 +29,7 @@ export default function PatientNavbar({
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg text-[#137fec] bg-[#137fec1a]">
-            <span className="material-icons-round">icon</span>
+            <FiActivity className="w-5 h-5" />
           </div>
           <span className="font-bold text-xl">MediBook</span>
         </div>

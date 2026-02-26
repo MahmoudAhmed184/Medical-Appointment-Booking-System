@@ -1,10 +1,17 @@
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
-/**
- * ProtectedRoute component — guards routes by auth status and role.
- * TODO: Implement auth check (redirect to /login) and role check (redirect to /)
- */
 const ProtectedRoute = ({ allowedRoles = [] }) => {
+    const { user, token } = useSelector((state) => state.auth);
+
+    if (!token || !user) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+        return <Navigate to="/login" replace />;
+    }
+
     return <Outlet />;
 };
 
