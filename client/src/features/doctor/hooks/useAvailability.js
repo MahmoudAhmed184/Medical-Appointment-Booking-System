@@ -17,8 +17,8 @@ const useAvailability = () => {
         setError(null);
         try {
             const { data } = await getAvailabilityApi();
-            // Backend returns { availability: [...] }
-            setSlots(data.availability || []);
+            // Backend returns { success: true, data: [...] }
+            setSlots(data.data || []);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load availability');
         } finally {
