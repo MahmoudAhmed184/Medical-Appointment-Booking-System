@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import useUsers from '../hooks/useUsers';
+import useToast from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/Toast';
 import UsersTable from '../components/UsersTable';
 
 const roleOptions = [
@@ -32,6 +34,31 @@ const UsersPage = () => {
     } = useUsers();
 
     const [searchInput, setSearchInput] = useState(filters.search || '');
+    const { toast, showToast } = useToast();
+
+    const handleApprove = useCallback(
+        async (id) => {
+            await approveUser(id);
+            showToast('User approved successfully');
+        },
+        [approveUser, showToast]
+    );
+
+    const handleBlock = useCallback(
+        async (id) => {
+            await blockUser(id);
+            showToast('User status updated');
+        },
+        [blockUser, showToast]
+    );
+
+    const handleDelete = useCallback(
+        async (id) => {
+            await deleteUser(id);
+            showToast('User deleted successfully');
+        },
+        [deleteUser, showToast]
+    );
 
     const handleSearchSubmit = useCallback(
         (e) => {
@@ -125,12 +152,14 @@ const UsersPage = () => {
                     pagination={pagination}
                     loading={loading}
                     actionLoading={actionLoading}
-                    onApprove={approveUser}
-                    onBlock={blockUser}
-                    onDelete={deleteUser}
+                    onApprove={handleApprove}
+                    onBlock={handleBlock}
+                    onDelete={handleDelete}
                     onPageChange={handlePageChange}
                 />
             </div>
+
+            <Toast toast={toast} />
         </div>
     );
 };

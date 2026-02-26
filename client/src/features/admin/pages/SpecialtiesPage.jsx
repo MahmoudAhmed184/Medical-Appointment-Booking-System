@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { FiTag, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import useSpecialties from '../hooks/useSpecialties';
+import useToast from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/Toast';
 import SpecialtyForm from '../components/SpecialtyForm';
 
 const SpecialtiesPage = () => {
@@ -19,29 +21,33 @@ const SpecialtiesPage = () => {
     const [showForm, setShowForm] = useState(false);
     const [editingSpecialty, setEditingSpecialty] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
+    const { toast, showToast } = useToast();
 
     const handleCreate = useCallback(
         async (data) => {
             await createSpecialty(data);
             setShowForm(false);
+            showToast('Specialty created successfully');
         },
-        [createSpecialty]
+        [createSpecialty, showToast]
     );
 
     const handleUpdate = useCallback(
         async (data) => {
             await updateSpecialty(editingSpecialty._id, data);
             setEditingSpecialty(null);
+            showToast('Specialty updated successfully');
         },
-        [updateSpecialty, editingSpecialty]
+        [updateSpecialty, editingSpecialty, showToast]
     );
 
     const handleDelete = useCallback(
         async (id) => {
             await deleteSpecialty(id);
             setConfirmDelete(null);
+            showToast('Specialty deleted successfully');
         },
-        [deleteSpecialty]
+        [deleteSpecialty, showToast]
     );
 
     const handleEdit = useCallback((specialty) => {
@@ -188,6 +194,8 @@ const SpecialtiesPage = () => {
                     ))}
                 </div>
             )}
+
+            <Toast toast={toast} />
         </div>
     );
 };
